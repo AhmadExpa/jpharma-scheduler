@@ -14,7 +14,7 @@ Open the local URL shown by Vite.
 ## Workflow
 
 1. Add team members in the left panel.
-2. Build the recurring Sunday–Saturday pattern with employee/time rows and optional notes.
+2. Enter the printed schedule title, then build the recurring Sunday–Saturday pattern with employee/time rows and optional notes.
 3. Choose any month and year.
 4. Click a calendar date to create a one-off override.
 5. Use **Print / Save PDF** to print the schedule or save it as a PDF from the browser dialog.

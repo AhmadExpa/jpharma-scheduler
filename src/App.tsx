@@ -187,6 +187,16 @@ function App() {
             <p className="eyebrow">Schedule workspace</p>
             <h1>Build your monthly coverage plan.</h1>
             <p className="intro-copy">Set the weekly rhythm once, then make quick edits for holidays, time off, and special coverage.</p>
+            <label className="workspace-title-editor" htmlFor="schedule-title">
+              <span>Printed schedule title</span>
+              <input
+                id="schedule-title"
+                value={state.scheduleTitle}
+                onChange={(event) => updateState((current) => ({ ...current, scheduleTitle: event.target.value }))}
+                placeholder="e.g. Pharmacists Schedule"
+                maxLength={70}
+              />
+            </label>
           </div>
           <div className="setup-progress" aria-label="Setup progress">
             <div className={`progress-step ${state.employees.length > 0 ? 'complete' : 'active'}`}><span>{state.employees.length > 0 ? '✓' : '1'}</span> Team</div>
@@ -236,6 +246,7 @@ function App() {
             <ScheduleCalendar
               year={state.selectedYear}
               month={state.selectedMonth}
+              scheduleTitle={state.scheduleTitle}
               employees={state.employees}
               template={state.weeklyTemplate}
               overrides={state.currentMonthOverrides}

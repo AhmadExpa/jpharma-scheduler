@@ -56,6 +56,9 @@ function cleanState(value: unknown): SchedulerState {
 
   return {
     version: 1,
+    scheduleTitle: typeof value.scheduleTitle === 'string' && value.scheduleTitle.trim().length > 0
+      ? value.scheduleTitle.trim()
+      : fallback.scheduleTitle,
     employees,
     weeklyTemplate: cleanTemplate(value.weeklyTemplate),
     selectedYear,

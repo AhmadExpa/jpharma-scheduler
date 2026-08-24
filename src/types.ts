@@ -22,6 +22,7 @@ export type WeeklyTemplate = Record<Weekday, DaySchedule>
 
 export interface SchedulerState {
   version: 1
+  scheduleTitle: string
   employees: Employee[]
   weeklyTemplate: WeeklyTemplate
   selectedYear: number

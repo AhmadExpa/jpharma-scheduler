@@ -42,6 +42,7 @@ export function createDefaultState(): SchedulerState {
   const today = new Date()
   return {
     version: 1,
+    scheduleTitle: 'Staff Schedule',
     employees: [],
     weeklyTemplate: createDefaultTemplate(),
     selectedYear: today.getFullYear(),

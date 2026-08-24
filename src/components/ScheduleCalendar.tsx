@@ -5,13 +5,14 @@ import Icon from './Icon'
 interface ScheduleCalendarProps {
   year: number
   month: number
+  scheduleTitle: string
   employees: Employee[]
   template: WeeklyTemplate
   overrides: Record<string, DaySchedule>
   onEditDate: (date: Date) => void
 }
 
-export default function ScheduleCalendar({ year, month, employees, template, overrides, onEditDate }: ScheduleCalendarProps) {
+export default function ScheduleCalendar({ year, month, scheduleTitle, employees, template, overrides, onEditDate }: ScheduleCalendarProps) {
   const cells = getCalendarCells(year, month)
   const employeeNames = new Map(employees.map((employee) => [employee.id, employee.name]))
   const editedCount = Object.keys(overrides).length
@@ -35,7 +36,7 @@ export default function ScheduleCalendar({ year, month, employees, template, ove
 
       <div className="print-heading print-only">
         <div>
-          <p className="print-kicker">JPharma · Staff schedule</p>
+          <p className="print-kicker">JPharma · {scheduleTitle || 'Staff Schedule'}</p>
           <h1 id="calendar-title">{formatMonthYear(year, month)}</h1>
         </div>
         <p className="print-generated">Prepared schedule</p>
