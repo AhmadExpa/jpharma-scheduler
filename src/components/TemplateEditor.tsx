@@ -3,16 +3,19 @@ import { createId, WEEKDAYS } from '../dateUtils'
 import type { DaySchedule, Employee, ScheduleEntry, Weekday, WeeklyTemplate } from '../types'
 import Icon from './Icon'
 import TemplateEntryModal from './TemplateEntryModal'
+import QuickSetupModal from './QuickSetupModal'
 
 interface TemplateEditorProps {
   employees: Employee[]
   template: WeeklyTemplate
   onUpdateDay: (day: Weekday, value: DaySchedule) => void
+  onUpdateDays: (updates: Partial<Record<Weekday, DaySchedule>>) => void
 }
 
-export default function TemplateEditor({ employees, template, onUpdateDay }: TemplateEditorProps) {
+export default function TemplateEditor({ employees, template, onUpdateDay, onUpdateDays }: TemplateEditorProps) {
   const [activeDay, setActiveDay] = useState<Weekday>(1)
   const [editingEntry, setEditingEntry] = useState<{ entry: ScheduleEntry; isNew: boolean } | null>(null)
+  const [quickSetupOpen, setQuickSetupOpen] = useState(false)
   const current = template[activeDay]
   const dayInfo = WEEKDAYS[activeDay]
 
@@ -63,7 +66,13 @@ export default function TemplateEditor({ employees, template, onUpdateDay }: Tem
           <h2 id="template-heading">Weekly pattern</h2>
         </div>
       </div>
-      <p className="card-copy">Set the recurring rows once, then use the calendar for one-off changes.</p>
+      <p className="card-copy">Set the team times once and they will appear automatically in every month.</p>
+
+      <button className="quick-setup-button" type="button" onClick={() => setQuickSetupOpen(true)} disabled={employees.length === 0}>
+        <span className="quick-setup-icon"><Icon name="refresh" size={14} /></span>
+        <span><strong>Quick setup for the team</strong><small>Set times once for Mon–Thu</small></span>
+        <Icon name="arrow-right" size={15} />
+      </button>
 
       <div className="weekday-tabs" role="tablist" aria-label="Weekly pattern days">
         {WEEKDAYS.map((day) => {
@@ -137,6 +146,14 @@ export default function TemplateEditor({ employees, template, onUpdateDay }: Tem
         onClose={() => setEditingEntry(null)}
         onSave={saveEntry}
         onDelete={deleteEditingEntry}
+      />
+    )}
+    {quickSetupOpen && (
+      <QuickSetupModal
+        employees={employees}
+        template={template}
+        onClose={() => setQuickSetupOpen(false)}
+        onSave={(updates) => { onUpdateDays(updates); setQuickSetupOpen(false) }}
       />
     )}
     </>

@@ -110,6 +110,14 @@ function App() {
     }))
   }
 
+  function updateTemplateDays(updates: Partial<Record<Weekday, DaySchedule>>) {
+    updateState((current) => ({
+      ...current,
+      weeklyTemplate: { ...current.weeklyTemplate, ...updates },
+    }))
+    showToast('Recurring schedule created — it now appears in every month')
+  }
+
   function hasPendingOverrides() {
     return Object.keys(state.currentMonthOverrides).length > 0
   }
@@ -210,7 +218,7 @@ function App() {
         <div className="workspace-layout">
           <aside className="control-rail no-print">
             <EmployeeManager employees={state.employees} onAdd={addEmployee} onRename={renameEmployee} onDelete={deleteEmployee} onMove={moveEmployee} />
-            <TemplateEditor employees={state.employees} template={state.weeklyTemplate} onUpdateDay={updateTemplateDay} />
+            <TemplateEditor employees={state.employees} template={state.weeklyTemplate} onUpdateDay={updateTemplateDay} onUpdateDays={updateTemplateDays} />
           </aside>
 
           <section className="schedule-area">
