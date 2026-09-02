@@ -11,6 +11,7 @@ import {
   cloneWeeklyTemplate,
   cloneMonthOverrides,
   createId,
+  createDefaultTemplate,
   dateKey,
   formatMonthYear,
   getDaySchedule,
@@ -322,6 +323,33 @@ function App() {
     showToast(`${formatMonthYear(state.selectedYear, state.selectedMonth)} regenerated`)
   }
 
+  function resetCalendar() {
+    if (totalTemplateEntries === 0 && !hasPendingOverrides()) {
+      showToast('The calendar is already empty')
+      return
+    }
+    setConfirmAction({
+      eyebrow: 'Reset calendar',
+      title: 'Reset this calendar?',
+      message: 'This will remove all recurring shifts and date-specific changes. Your employees, title, and saved templates will stay in place.',
+      confirmLabel: 'Reset calendar',
+      danger: true,
+      icon: 'refresh',
+      onConfirm: resetCurrentCalendar,
+    })
+  }
+
+  function resetCurrentCalendar() {
+    updateState((current) => ({
+      ...current,
+      weeklyTemplate: createDefaultTemplate(),
+      currentMonthOverrides: {},
+      activeTemplateId: null,
+    }))
+    setSelectedDate(null)
+    showToast('Calendar reset — your team and saved templates were kept')
+  }
+
   function saveDateOverride(day: DaySchedule) {
     if (!selectedDate) return
     updateState((current) => ({
@@ -428,7 +456,8 @@ function App() {
                   <button className="icon-button" type="button" onClick={nextMonth} aria-label="Next month" title="Next month"><Icon name="arrow-right" /></button>
                 </div>
                 <button className="button secondary" type="button" onClick={goToCurrentMonth}>Today</button>
-                <button className="button ghost" type="button" onClick={regenerateMonth}><Icon name="refresh" size={15} /> Regenerate</button>
+                <button className="button ghost" type="button" onClick={regenerateMonth} title="Clear date-specific changes and use the recurring pattern"><Icon name="refresh" size={15} /> Regenerate</button>
+                <button className="button ghost danger-text" type="button" onClick={resetCalendar} title="Clear all shifts from this calendar"><Icon name="refresh" size={15} /> Reset calendar</button>
               </div>
             </div>
 
