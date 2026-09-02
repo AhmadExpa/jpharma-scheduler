@@ -45,10 +45,24 @@ export function createDefaultState(): SchedulerState {
     scheduleTitle: 'Staff Schedule',
     employees: [],
     weeklyTemplate: createDefaultTemplate(),
+    templates: [],
+    activeTemplateId: null,
     selectedYear: today.getFullYear(),
     selectedMonth: today.getMonth(),
     currentMonthOverrides: {},
   }
+}
+
+export function cloneWeeklyTemplate(template: WeeklyTemplate): WeeklyTemplate {
+  const copy = {} as WeeklyTemplate
+  for (let day = 0; day < 7; day += 1) {
+    const source = template[day as Weekday]
+    copy[day as Weekday] = {
+      note: source.note,
+      entries: source.entries.map((entry) => ({ ...entry })),
+    }
+  }
+  return copy
 }
 
 export function cloneEntries(entries: ScheduleEntry[]): ScheduleEntry[] {

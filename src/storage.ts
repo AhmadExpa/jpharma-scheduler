@@ -1,5 +1,5 @@
 import { createDefaultState } from './dateUtils'
-import type { DaySchedule, Employee, ScheduleEntry, SchedulerState, Weekday, WeeklyTemplate } from './types'
+import type { DaySchedule, Employee, ScheduleEntry, ScheduleTemplate, SchedulerState, Weekday, WeeklyTemplate } from './types'
 
 const STORAGE_KEY = 'jpharma-scheduler:v1'
 
@@ -31,16 +31,35 @@ function cleanTemplate(value: unknown): WeeklyTemplate {
   return template
 }
 
-function cleanState(value: unknown): SchedulerState {
-  const fallback = createDefaultState()
-  if (!isRecord(value)) return fallback
-
-  const employees: Employee[] = Array.isArray(value.employees)
-    ? value.employees
+function cleanEmployees(value: unknown): Employee[] {
+  return Array.isArray(value)
+    ? value
         .filter(isRecord)
         .filter((employee) => typeof employee.id === 'string' && typeof employee.name === 'string')
         .map((employee) => ({ id: employee.id as string, name: (employee.name as string).trim() }))
         .filter((employee) => employee.name.length > 0)
+    : []
+}
+
+function cleanTemplateRecord(value: unknown): ScheduleTemplate | null {
+  if (!isRecord(value) || typeof value.id !== 'string' || typeof value.name !== 'string') return null
+  const name = value.name.trim()
+  if (!name) return null
+  return {
+    id: value.id,
+    name,
+    employees: cleanEmployees(value.employees),
+    weeklyTemplate: cleanTemplate(value.weeklyTemplate),
+  }
+}
+
+function cleanState(value: unknown): SchedulerState {
+  const fallback = createDefaultState()
+  if (!isRecord(value)) return fallback
+
+  const employees = cleanEmployees(value.employees)
+  const templates = Array.isArray(value.templates)
+    ? value.templates.map(cleanTemplateRecord).filter((template): template is ScheduleTemplate => template !== null)
     : []
 
   const selectedYear = typeof value.selectedYear === 'number' && Number.isFinite(value.selectedYear)
@@ -61,6 +80,10 @@ function cleanState(value: unknown): SchedulerState {
       : fallback.scheduleTitle,
     employees,
     weeklyTemplate: cleanTemplate(value.weeklyTemplate),
+    templates,
+    activeTemplateId: typeof value.activeTemplateId === 'string' && templates.some((template) => template.id === value.activeTemplateId)
+      ? value.activeTemplateId
+      : null,
     selectedYear,
     selectedMonth,
     currentMonthOverrides: overrides,

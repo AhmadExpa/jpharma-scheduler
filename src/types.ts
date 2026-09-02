@@ -20,11 +20,20 @@ export interface DaySchedule {
 
 export type WeeklyTemplate = Record<Weekday, DaySchedule>
 
+export interface ScheduleTemplate {
+  id: string
+  name: string
+  employees: Employee[]
+  weeklyTemplate: WeeklyTemplate
+}
+
 export interface SchedulerState {
   version: 1
   scheduleTitle: string
   employees: Employee[]
   weeklyTemplate: WeeklyTemplate
+  templates: ScheduleTemplate[]
+  activeTemplateId: string | null
   selectedYear: number
   selectedMonth: number
   currentMonthOverrides: Record<string, DaySchedule>

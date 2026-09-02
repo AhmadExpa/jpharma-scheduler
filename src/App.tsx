@@ -4,7 +4,10 @@ import Icon from './components/Icon'
 import ScheduleCalendar from './components/ScheduleCalendar'
 import DayEditorModal from './components/DayEditorModal'
 import TemplateEditor from './components/TemplateEditor'
+import SavedTemplatesBar from './components/SavedTemplatesBar'
 import {
+  cloneWeeklyTemplate,
+  createId,
   dateKey,
   formatMonthYear,
   getDaySchedule,
@@ -12,7 +15,7 @@ import {
   WEEKDAYS,
 } from './dateUtils'
 import { loadState, saveState } from './storage'
-import type { DaySchedule, Employee, ScheduleEntry, SchedulerState, Weekday } from './types'
+import type { DaySchedule, Employee, ScheduleEntry, SchedulerState, ScheduleTemplate, Weekday } from './types'
 
 function App() {
   const [state, setState] = useState<SchedulerState>(() => loadState())
@@ -116,6 +119,76 @@ function App() {
       weeklyTemplate: { ...current.weeklyTemplate, ...updates },
     }))
     showToast('Recurring schedule created — it now appears in every month')
+  }
+
+  function saveCurrentAsTemplate() {
+    if (state.employees.length === 0) {
+      showToast('Add at least one employee before saving a template')
+      return
+    }
+    const requestedName = window.prompt('Name this schedule template:', 'Standard Schedule')
+    const name = requestedName?.trim() ?? ''
+    if (!name) return
+    if (state.templates.some((template) => template.name.toLowerCase() === name.toLowerCase())) {
+      showToast('A template with that name already exists')
+      return
+    }
+    const template: ScheduleTemplate = {
+      id: createId('template'),
+      name,
+      employees: state.employees.map((employee) => ({ ...employee })),
+      weeklyTemplate: cloneWeeklyTemplate(state.weeklyTemplate),
+    }
+    updateState((current) => ({
+      ...current,
+      templates: [...current.templates, template],
+      activeTemplateId: template.id,
+    }))
+    showToast(`Template “${name}” saved in this browser`)
+  }
+
+  function updateActiveTemplate() {
+    const activeTemplate = state.templates.find((template) => template.id === state.activeTemplateId)
+    if (!activeTemplate) return
+    updateState((current) => ({
+      ...current,
+      templates: current.templates.map((template) => template.id === activeTemplate.id ? {
+        ...template,
+        employees: current.employees.map((employee) => ({ ...employee })),
+        weeklyTemplate: cloneWeeklyTemplate(current.weeklyTemplate),
+      } : template),
+    }))
+    showToast(`Template “${activeTemplate.name}” updated`)
+  }
+
+  function loadTemplate(templateId: string | null) {
+    if (!templateId) {
+      updateState((current) => ({ ...current, activeTemplateId: null }))
+      return
+    }
+    const template = state.templates.find((item) => item.id === templateId)
+    if (!template) return
+    if (hasPendingOverrides() && !window.confirm('Load this template? Date-specific edits for the current month will be cleared.')) return
+    updateState((current) => ({
+      ...current,
+      employees: template.employees.map((employee) => ({ ...employee })),
+      weeklyTemplate: cloneWeeklyTemplate(template.weeklyTemplate),
+      activeTemplateId: template.id,
+      currentMonthOverrides: {},
+    }))
+    setSelectedDate(null)
+    showToast(`Template “${template.name}” loaded`)
+  }
+
+  function deleteActiveTemplate() {
+    const activeTemplate = state.templates.find((template) => template.id === state.activeTemplateId)
+    if (!activeTemplate || !window.confirm(`Delete the saved template “${activeTemplate.name}”?`)) return
+    updateState((current) => ({
+      ...current,
+      templates: current.templates.filter((template) => template.id !== activeTemplate.id),
+      activeTemplateId: null,
+    }))
+    showToast(`Template “${activeTemplate.name}” deleted`)
   }
 
   function hasPendingOverrides() {
@@ -222,6 +295,14 @@ function App() {
           </aside>
 
           <section className="schedule-area">
+            <SavedTemplatesBar
+              templates={state.templates}
+              activeTemplateId={state.activeTemplateId}
+              onSelect={loadTemplate}
+              onSave={saveCurrentAsTemplate}
+              onUpdate={updateActiveTemplate}
+              onDelete={deleteActiveTemplate}
+            />
             <div className="month-toolbar no-print">
               <div className="month-title-group">
                 <p className="eyebrow">Your schedule</p>
