@@ -167,11 +167,11 @@ function App() {
   function loadTemplate(templateId: string | null) {
     if (!templateId) {
       updateState((current) => ({ ...current, activeTemplateId: null }))
-      return
+      return true
     }
     const template = state.templates.find((item) => item.id === templateId)
-    if (!template) return
-    if (hasPendingOverrides() && !window.confirm('Load this template? Date-specific edits for the current month will be cleared.')) return
+    if (!template || template.id === state.activeTemplateId) return false
+    if (!window.confirm(`Are you sure you want to discard current month changes and load “${template.name}” instead?`)) return false
     const monthPrefix = `${state.selectedYear}-${String(state.selectedMonth + 1).padStart(2, '0')}-`
     const monthOverrides = cloneMonthOverrides(Object.fromEntries(
       Object.entries(template.monthOverrides).filter(([key]) => key.startsWith(monthPrefix)),
@@ -185,6 +185,7 @@ function App() {
     }))
     setSelectedDate(null)
     showToast(`Template “${template.name}” loaded`)
+    return true
   }
 
   function deleteActiveTemplate() {

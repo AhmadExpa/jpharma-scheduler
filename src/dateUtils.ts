@@ -76,7 +76,7 @@ export function createSampleTemplate(): ScheduleTemplate {
 
   return {
     id: SAMPLE_TEMPLATE_ID,
-    name: 'Pharmacists Schedule · August 2026',
+    name: 'Pharmacists Schedule',
     builtIn: true,
     employees,
     weeklyTemplate,
