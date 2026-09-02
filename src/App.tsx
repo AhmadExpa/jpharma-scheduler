@@ -194,7 +194,7 @@ function App() {
           <div>
             <p className="eyebrow">Schedule workspace</p>
             <h1>Build your monthly coverage plan.</h1>
-            <p className="intro-copy">Set the weekly rhythm once, then make quick edits for holidays, time off, and special coverage.</p>
+            <p className="intro-copy">Click any calendar date to add or edit employee slots. Use the recurring pattern only when the same schedule repeats.</p>
             <label className="workspace-title-editor" htmlFor="schedule-title">
               <span>Printed schedule title</span>
               <input
@@ -263,7 +263,7 @@ function App() {
 
             <div className="schedule-tip no-print">
               <div className="tip-icon"><Icon name="edit" size={16} /></div>
-              <div><strong>Need a one-off change?</strong><span>Select any date on the calendar to edit its employees, times, or note.</span></div>
+              <div><strong>Fastest workflow.</strong><span>Click any calendar date to add or edit its employees, times, or note.</span></div>
             </div>
           </section>
         </div>

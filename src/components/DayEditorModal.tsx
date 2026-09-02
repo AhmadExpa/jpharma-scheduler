@@ -59,7 +59,7 @@ export default function DayEditorModal({ date, initialDay, isOverride, employees
       <div className="day-modal" role="dialog" aria-modal="true" aria-labelledby="day-editor-title">
         <div className="modal-header">
           <div>
-            <p className="eyebrow">{isOverride ? 'Custom date' : `${getWeekdayName(date.getDay())} pattern`}</p>
+            <p className="eyebrow">{isOverride ? 'Custom slots' : `${getWeekdayName(date.getDay())} slots`}</p>
             <h2 id="day-editor-title">{formatDateLong(date)}</h2>
           </div>
           <button className="icon-button" type="button" onClick={onClose} aria-label="Close date editor" title="Close"><Icon name="x" /></button>
@@ -68,13 +68,14 @@ export default function DayEditorModal({ date, initialDay, isOverride, employees
         <div className="modal-body">
           <div className="modal-callout">
             <Icon name="calendar" size={17} />
-            <span>{isOverride ? 'This date has its own custom coverage.' : 'This date is using its recurring weekly pattern.'}</span>
+            <span>{isOverride ? 'These slots are custom for this date.' : 'These slots come from the recurring pattern. Saving here creates a date-specific schedule.'}</span>
           </div>
 
           {employees.length === 0 ? (
-            <div className="empty-panel">Add team members before adding schedule rows.</div>
+            <div className="empty-panel">Add team members first, then return here to add slots.</div>
           ) : (
             <div className="modal-entries">
+              {draft.entries.length === 0 && <div className="modal-empty-state"><Icon name="calendar" size={19} /><strong>No slots for this date yet</strong><span>Use the button below to add the first employee and time.</span></div>}
               {draft.entries.map((entry, index) => (
                 <div className="modal-entry" key={entry.id}>
                   <select value={entry.employeeId} onChange={(event) => updateEntry(index, { ...entry, employeeId: event.target.value })} aria-label="Employee">
@@ -92,11 +93,11 @@ export default function DayEditorModal({ date, initialDay, isOverride, employees
                   <button className="small-action danger" type="button" onClick={() => setDraft((current) => ({ ...current, entries: current.entries.filter((_, entryIndex) => entryIndex !== index) }))} aria-label="Remove schedule row" title="Remove"><Icon name="trash" size={15} /></button>
                 </div>
               ))}
-              <button className="button secondary add-modal-row" type="button" onClick={addEntry}><Icon name="plus" size={15} /> Add schedule row</button>
+              <button className="button secondary add-modal-row" type="button" onClick={addEntry}><Icon name="plus" size={15} /> Add slot</button>
             </div>
           )}
 
-          <label className="field-label" htmlFor="date-note">Date note <span>optional</span></label>
+          <label className="field-label" htmlFor="date-note">Note for this date <span>optional</span></label>
           <textarea id="date-note" className="note-input" rows={3} value={draft.note} onChange={(event) => setDraft((current) => ({ ...current, note: event.target.value }))} placeholder="Add a note for this date" />
           {error && <p className="form-error" role="alert">{error}</p>}
         </div>
@@ -105,7 +106,7 @@ export default function DayEditorModal({ date, initialDay, isOverride, employees
           {isOverride ? <button className="button ghost danger-text" type="button" onClick={onReset}><Icon name="refresh" size={15} /> Reset to pattern</button> : <span />}
           <div className="footer-actions">
             <button className="button secondary" type="button" onClick={onClose}>Cancel</button>
-            <button className="button primary" type="button" onClick={save}><Icon name="check" size={16} /> Save date</button>
+            <button className="button primary" type="button" onClick={save}><Icon name="check" size={16} /> Save slots</button>
           </div>
         </div>
       </div>

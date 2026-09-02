@@ -27,6 +27,7 @@ export default function ScheduleCalendar({ year, month, scheduleTitle, employees
         <div>
           <p className="eyebrow">Monthly view</p>
           <h2>{formatMonthYear(year, month)}</h2>
+          <p className="calendar-action-copy">Click any date to add or edit slots.</p>
         </div>
         <div className="calendar-status">
           <span className="status-dot" />
@@ -57,7 +58,7 @@ export default function ScheduleCalendar({ year, month, scheduleTitle, employees
               tabIndex={0}
               onClick={() => openDate(date)}
               onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openDate(date) } }}
-              aria-label={`Edit ${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`}
+              aria-label={`Manage slots for ${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`}
             >
               <div className="cell-topline">
                 <span className="date-number">{date.getDate()}</span>
@@ -71,16 +72,16 @@ export default function ScheduleCalendar({ year, month, scheduleTitle, employees
                   </div>
                 ))}
                 {day.note && <div className="calendar-note">{day.note}</div>}
-                {day.entries.length === 0 && !day.note && <span className="cell-placeholder no-print">Click to add coverage</span>}
+                {day.entries.length === 0 && !day.note && <span className="cell-placeholder no-print">+ Add slot</span>}
               </div>
-              <span className="cell-edit-hint no-print"><Icon name="edit" size={12} /> Edit</span>
+              <span className="cell-edit-hint no-print"><Icon name="edit" size={12} /> Manage</span>
             </div>
           )
         })}
       </div>
 
       <div className="calendar-footer no-print">
-        <div className="legend"><span className="legend-swatch" /> Click any date to add a one-off change</div>
+        <div className="legend"><span className="legend-swatch" /> Click any date to manage slots</div>
         <div className="legend"><span className="legend-dot" /> Recurring weekly pattern</div>
       </div>
     </section>

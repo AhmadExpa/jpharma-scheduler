@@ -63,10 +63,10 @@ export default function TemplateEditor({ employees, template, onUpdateDay, onUpd
         <div className="heading-icon lavender"><Icon name="settings" size={18} /></div>
         <div>
           <p className="eyebrow">Step 02</p>
-          <h2 id="template-heading">Weekly pattern</h2>
+          <h2 id="template-heading">Recurring pattern <span className="optional-heading">optional</span></h2>
         </div>
       </div>
-      <p className="card-copy">Set the team times once and they will appear automatically in every month.</p>
+      <p className="card-copy">Optional shortcut: set a repeating work week once. For fastest editing, click dates directly on the calendar.</p>
 
       <button className="quick-setup-button" type="button" onClick={() => setQuickSetupOpen(true)} disabled={employees.length === 0}>
         <span className="quick-setup-icon"><Icon name="refresh" size={14} /></span>
