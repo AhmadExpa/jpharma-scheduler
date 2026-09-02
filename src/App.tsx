@@ -5,6 +5,8 @@ import ScheduleCalendar from './components/ScheduleCalendar'
 import DayEditorModal from './components/DayEditorModal'
 import TemplateEditor from './components/TemplateEditor'
 import SavedTemplatesBar from './components/SavedTemplatesBar'
+import ConfirmModal from './components/ConfirmModal'
+import TextInputModal from './components/TextInputModal'
 import {
   cloneWeeklyTemplate,
   cloneMonthOverrides,
@@ -18,10 +20,22 @@ import {
 import { loadState, saveState } from './storage'
 import type { DaySchedule, Employee, ScheduleEntry, SchedulerState, ScheduleTemplate, Weekday } from './types'
 
+interface ConfirmAction {
+  eyebrow?: string
+  title: string
+  message: string
+  confirmLabel: string
+  danger?: boolean
+  icon?: 'calendar' | 'refresh' | 'settings' | 'trash' | 'users'
+  onConfirm: () => void
+}
+
 function App() {
   const [state, setState] = useState<SchedulerState>(() => loadState())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [toast, setToast] = useState('')
+  const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null)
+  const [templateNameModalOpen, setTemplateNameModalOpen] = useState(false)
 
   useEffect(() => saveState(state), [state])
 
@@ -73,8 +87,21 @@ function App() {
 
   function deleteEmployee(id: string) {
     const employee = state.employees.find((item) => item.id === id)
-    if (!employee || !window.confirm(`Remove ${employee.name} from the team? Their rows will also be removed from the current pattern.`)) return
+    if (!employee) return
+    setConfirmAction({
+      eyebrow: 'Team member',
+      title: `Remove ${employee.name}?`,
+      message: 'Their rows will also be removed from the current recurring pattern and date-specific changes.',
+      confirmLabel: 'Remove employee',
+      danger: true,
+      icon: 'users',
+      onConfirm: () => removeEmployee(id),
+    })
+  }
 
+  function removeEmployee(id: string) {
+    const employee = state.employees.find((item) => item.id === id)
+    if (!employee) return
     function removeFromDay(day: DaySchedule): DaySchedule {
       return { ...day, entries: day.entries.filter((entry) => entry.employeeId !== id) }
     }
@@ -122,17 +149,19 @@ function App() {
     showToast('Recurring schedule created — it now appears in every month')
   }
 
-  function saveCurrentAsTemplate() {
+  function openTemplateNameModal() {
     if (state.employees.length === 0) {
       showToast('Add at least one employee before saving a template')
       return
     }
-    const requestedName = window.prompt('Name this schedule template:', 'Standard Schedule')
-    const name = requestedName?.trim() ?? ''
-    if (!name) return
+    setTemplateNameModalOpen(true)
+  }
+
+  function saveCurrentAsTemplate(requestedName: string): string | null {
+    const name = requestedName.trim()
+    if (!name) return 'Enter a name for this template.'
     if (state.templates.some((template) => template.name.toLowerCase() === name.toLowerCase())) {
-      showToast('A template with that name already exists')
-      return
+      return 'A template with that name already exists.'
     }
     const template: ScheduleTemplate = {
       id: createId('template'),
@@ -148,6 +177,7 @@ function App() {
       activeTemplateId: template.id,
     }))
     showToast(`Template “${name}” saved in this browser`)
+    return null
   }
 
   function updateActiveTemplate() {
@@ -167,11 +197,23 @@ function App() {
   function loadTemplate(templateId: string | null) {
     if (!templateId) {
       updateState((current) => ({ ...current, activeTemplateId: null }))
-      return true
+      return
     }
     const template = state.templates.find((item) => item.id === templateId)
-    if (!template || template.id === state.activeTemplateId) return false
-    if (!window.confirm(`Are you sure you want to discard current month changes and load “${template.name}” instead?`)) return false
+    if (!template || template.id === state.activeTemplateId) return
+    setConfirmAction({
+      eyebrow: 'Load saved template',
+      title: `Load ${template.name}?`,
+      message: `Are you sure you want to discard current month changes and load “${template.name}” instead?`,
+      confirmLabel: 'Load template',
+      icon: 'calendar',
+      onConfirm: () => applyTemplate(template.id),
+    })
+  }
+
+  function applyTemplate(templateId: string) {
+    const template = state.templates.find((item) => item.id === templateId)
+    if (!template) return
     const monthPrefix = `${state.selectedYear}-${String(state.selectedMonth + 1).padStart(2, '0')}-`
     const monthOverrides = cloneMonthOverrides(Object.fromEntries(
       Object.entries(template.monthOverrides).filter(([key]) => key.startsWith(monthPrefix)),
@@ -185,18 +227,29 @@ function App() {
     }))
     setSelectedDate(null)
     showToast(`Template “${template.name}” loaded`)
-    return true
   }
 
   function deleteActiveTemplate() {
     const activeTemplate = state.templates.find((template) => template.id === state.activeTemplateId)
-    if (!activeTemplate || activeTemplate.builtIn || !window.confirm(`Delete the saved template “${activeTemplate.name}”?`)) return
+    if (!activeTemplate || activeTemplate.builtIn) return
+    setConfirmAction({
+      eyebrow: 'Saved template',
+      title: `Delete ${activeTemplate.name}?`,
+      message: 'This saved template will be removed from this browser. Your current schedule will stay as it is.',
+      confirmLabel: 'Delete template',
+      danger: true,
+      icon: 'trash',
+      onConfirm: () => removeActiveTemplate(activeTemplate.id),
+    })
+  }
+
+  function removeActiveTemplate(templateId: string) {
     updateState((current) => ({
       ...current,
-      templates: current.templates.filter((template) => template.id !== activeTemplate.id),
+      templates: current.templates.filter((template) => template.id !== templateId),
       activeTemplateId: null,
     }))
-    showToast(`Template “${activeTemplate.name}” deleted`)
+    showToast('Saved template deleted')
   }
 
   function hasPendingOverrides() {
@@ -214,7 +267,21 @@ function App() {
 
   function changeMonth(year: number, month: number, message = 'Change month? Date-specific edits for the current month will be cleared.') {
     if (year === state.selectedYear && month === state.selectedMonth) return
-    if (hasPendingOverrides() && !window.confirm(message)) return
+    if (hasPendingOverrides()) {
+      setConfirmAction({
+        eyebrow: 'Change month',
+        title: 'Change the schedule month?',
+        message,
+        confirmLabel: 'Change month',
+        icon: 'calendar',
+        onConfirm: () => applyMonthChange(year, month),
+      })
+      return
+    }
+    applyMonthChange(year, month)
+  }
+
+  function applyMonthChange(year: number, month: number) {
     updateState((current) => ({ ...current, selectedYear: year, selectedMonth: month, currentMonthOverrides: getTemplateOverridesForMonth(year, month) }))
     setSelectedDate(null)
   }
@@ -239,7 +306,17 @@ function App() {
       showToast('The calendar is already following the weekly pattern')
       return
     }
-    if (!window.confirm('Regenerate this month from the weekly pattern? All date-specific edits will be cleared.')) return
+    setConfirmAction({
+      eyebrow: 'Regenerate month',
+      title: 'Regenerate this month?',
+      message: 'All date-specific edits will be cleared and the calendar will follow the weekly pattern again.',
+      confirmLabel: 'Regenerate month',
+      icon: 'refresh',
+      onConfirm: regenerateCurrentMonth,
+    })
+  }
+
+  function regenerateCurrentMonth() {
     updateState((current) => ({ ...current, currentMonthOverrides: {} }))
     setSelectedDate(null)
     showToast(`${formatMonthYear(state.selectedYear, state.selectedMonth)} regenerated`)
@@ -265,6 +342,12 @@ function App() {
     })
     setSelectedDate(null)
     showToast('Date reset to the weekly pattern')
+  }
+
+  function acceptConfirmAction() {
+    const action = confirmAction
+    setConfirmAction(null)
+    action?.onConfirm()
   }
 
   return (
@@ -316,7 +399,7 @@ function App() {
               templates={state.templates}
               activeTemplateId={state.activeTemplateId}
               onSelect={loadTemplate}
-              onSave={saveCurrentAsTemplate}
+              onSave={openTemplateNameModal}
               onUpdate={updateActiveTemplate}
               onDelete={deleteActiveTemplate}
             />
@@ -376,6 +459,32 @@ function App() {
           onClose={() => setSelectedDate(null)}
           onSave={saveDateOverride}
           onReset={resetDateOverride}
+        />
+      )}
+
+      {templateNameModalOpen && (
+        <TextInputModal
+          title="Save this schedule template"
+          description="Save the current employee list and recurring shift times so you can reuse them in any month."
+          label="Template name"
+          initialValue="Standard Schedule"
+          placeholder="e.g. Standard Schedule"
+          submitLabel="Save template"
+          onClose={() => setTemplateNameModalOpen(false)}
+          onSubmit={saveCurrentAsTemplate}
+        />
+      )}
+
+      {confirmAction && (
+        <ConfirmModal
+          eyebrow={confirmAction.eyebrow}
+          title={confirmAction.title}
+          message={confirmAction.message}
+          confirmLabel={confirmAction.confirmLabel}
+          danger={confirmAction.danger}
+          icon={confirmAction.icon}
+          onClose={() => setConfirmAction(null)}
+          onConfirm={acceptConfirmAction}
         />
       )}
 

@@ -4,7 +4,7 @@ import Icon from './Icon'
 interface SavedTemplatesBarProps {
   templates: ScheduleTemplate[]
   activeTemplateId: string | null
-  onSelect: (id: string | null) => boolean
+  onSelect: (id: string | null) => void
   onSave: () => void
   onUpdate: () => void
   onDelete: () => void
@@ -26,10 +26,7 @@ export default function SavedTemplatesBar({ templates, activeTemplateId, onSelec
       <div className="saved-templates-actions">
         <select
           value={activeTemplateId ?? ''}
-          onChange={(event) => {
-            const accepted = onSelect(event.target.value || null)
-            if (!accepted) event.currentTarget.value = activeTemplateId ?? ''
-          }}
+          onChange={(event) => onSelect(event.target.value || null)}
           aria-label="Choose a saved schedule template"
         >
           <option value="">Current schedule</option>
