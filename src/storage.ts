@@ -1,4 +1,4 @@
-import { createDefaultState } from './dateUtils'
+import { createDefaultState, createSampleTemplate, SAMPLE_TEMPLATE_ID } from './dateUtils'
 import type { DaySchedule, Employee, ScheduleEntry, ScheduleTemplate, SchedulerState, Weekday, WeeklyTemplate } from './types'
 
 const STORAGE_KEY = 'jpharma-scheduler:v1'
@@ -45,11 +45,17 @@ function cleanTemplateRecord(value: unknown): ScheduleTemplate | null {
   if (!isRecord(value) || typeof value.id !== 'string' || typeof value.name !== 'string') return null
   const name = value.name.trim()
   if (!name) return null
+  const monthOverrides: Record<string, DaySchedule> = {}
+  if (isRecord(value.monthOverrides)) {
+    for (const [key, day] of Object.entries(value.monthOverrides)) monthOverrides[key] = cleanDay(day)
+  }
   return {
     id: value.id,
     name,
+    builtIn: value.builtIn === true,
     employees: cleanEmployees(value.employees),
     weeklyTemplate: cleanTemplate(value.weeklyTemplate),
+    monthOverrides,
   }
 }
 
@@ -58,9 +64,11 @@ function cleanState(value: unknown): SchedulerState {
   if (!isRecord(value)) return fallback
 
   const employees = cleanEmployees(value.employees)
-  const templates = Array.isArray(value.templates)
+  const savedTemplates = Array.isArray(value.templates)
     ? value.templates.map(cleanTemplateRecord).filter((template): template is ScheduleTemplate => template !== null)
     : []
+  const sampleTemplate = createSampleTemplate()
+  const templates = [sampleTemplate, ...savedTemplates.filter((template) => template.id !== SAMPLE_TEMPLATE_ID)]
 
   const selectedYear = typeof value.selectedYear === 'number' && Number.isFinite(value.selectedYear)
     ? Math.round(value.selectedYear)

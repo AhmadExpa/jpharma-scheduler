@@ -16,12 +16,13 @@ Open the local URL shown by Vite.
 1. Add team members in the left panel.
 2. Enter the printed schedule title.
 3. Choose any month and year.
-4. Set up the employee roster and recurring shift times once, then click **Save as template** in the saved templates bar.
-5. For a new month, select the saved template to instantly restore the employees and recurring shift times.
-6. Click any calendar date, choose **Add slot**, and select the employee and time for a one-off change.
-7. For schedules that repeat, use **Quick setup for the team** to set employee times once for selected weekdays.
-8. Use the weekly pattern tabs for special weekday rules, such as Friday coverage or days off.
-9. Use **Print / Save PDF** to print the schedule or save it as a PDF from the browser dialog.
+4. Start with the built-in **Pharmacists Schedule · August 2026** sample, or set up your own employee roster and recurring shift times.
+5. Click **Save as template** in the saved templates bar to keep your own setup in this browser.
+6. For a new month, select a saved template to instantly restore the employees and recurring shift times. The built-in sample cannot be updated or deleted.
+7. Click any calendar date, choose **Add slot**, and select the employee and time for a one-off change.
+8. For schedules that repeat, use **Quick setup for the team** to set employee times once for selected weekdays.
+9. Use the weekly pattern tabs for special weekday rules, such as Friday coverage or days off.
+10. Use **Print / Save PDF** to print the schedule or save it as a PDF from the browser dialog.
 
 The active workspace and saved templates are stored in the current browser with `localStorage`. There is no server, sign-in, database, or schedule history.
 

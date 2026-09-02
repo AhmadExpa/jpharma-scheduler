@@ -23,8 +23,10 @@ export type WeeklyTemplate = Record<Weekday, DaySchedule>
 export interface ScheduleTemplate {
   id: string
   name: string
+  builtIn: boolean
   employees: Employee[]
   weeklyTemplate: WeeklyTemplate
+  monthOverrides: Record<string, DaySchedule>
 }
 
 export interface SchedulerState {

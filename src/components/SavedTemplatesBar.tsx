@@ -11,7 +11,8 @@ interface SavedTemplatesBarProps {
 }
 
 export default function SavedTemplatesBar({ templates, activeTemplateId, onSelect, onSave, onUpdate, onDelete }: SavedTemplatesBarProps) {
-  const hasActiveTemplate = templates.some((template) => template.id === activeTemplateId)
+  const activeTemplate = templates.find((template) => template.id === activeTemplateId)
+  const canManageActiveTemplate = Boolean(activeTemplate && !activeTemplate.builtIn)
 
   return (
     <div className="saved-templates-bar no-print">
@@ -28,8 +29,8 @@ export default function SavedTemplatesBar({ templates, activeTemplateId, onSelec
           {templates.map((template) => <option value={template.id} key={template.id}>{template.name}</option>)}
         </select>
         <button className="button secondary compact" type="button" onClick={onSave}><Icon name="plus" size={14} /> Save as template</button>
-        {hasActiveTemplate && <button className="button ghost compact" type="button" onClick={onUpdate}>Update</button>}
-        {hasActiveTemplate && <button className="template-delete-button" type="button" onClick={onDelete} aria-label="Delete selected template" title="Delete selected template"><Icon name="trash" size={14} /></button>}
+        {canManageActiveTemplate && <button className="button ghost compact" type="button" onClick={onUpdate}>Update</button>}
+        {canManageActiveTemplate && <button className="template-delete-button" type="button" onClick={onDelete} aria-label="Delete selected template" title="Delete selected template"><Icon name="trash" size={14} /></button>}
       </div>
     </div>
   )

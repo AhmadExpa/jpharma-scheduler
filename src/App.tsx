@@ -7,6 +7,7 @@ import TemplateEditor from './components/TemplateEditor'
 import SavedTemplatesBar from './components/SavedTemplatesBar'
 import {
   cloneWeeklyTemplate,
+  cloneMonthOverrides,
   createId,
   dateKey,
   formatMonthYear,
@@ -136,8 +137,10 @@ function App() {
     const template: ScheduleTemplate = {
       id: createId('template'),
       name,
+      builtIn: false,
       employees: state.employees.map((employee) => ({ ...employee })),
       weeklyTemplate: cloneWeeklyTemplate(state.weeklyTemplate),
+      monthOverrides: {},
     }
     updateState((current) => ({
       ...current,
@@ -149,7 +152,7 @@ function App() {
 
   function updateActiveTemplate() {
     const activeTemplate = state.templates.find((template) => template.id === state.activeTemplateId)
-    if (!activeTemplate) return
+    if (!activeTemplate || activeTemplate.builtIn) return
     updateState((current) => ({
       ...current,
       templates: current.templates.map((template) => template.id === activeTemplate.id ? {
@@ -169,12 +172,16 @@ function App() {
     const template = state.templates.find((item) => item.id === templateId)
     if (!template) return
     if (hasPendingOverrides() && !window.confirm('Load this template? Date-specific edits for the current month will be cleared.')) return
+    const monthPrefix = `${state.selectedYear}-${String(state.selectedMonth + 1).padStart(2, '0')}-`
+    const monthOverrides = cloneMonthOverrides(Object.fromEntries(
+      Object.entries(template.monthOverrides).filter(([key]) => key.startsWith(monthPrefix)),
+    ))
     updateState((current) => ({
       ...current,
       employees: template.employees.map((employee) => ({ ...employee })),
       weeklyTemplate: cloneWeeklyTemplate(template.weeklyTemplate),
       activeTemplateId: template.id,
-      currentMonthOverrides: {},
+      currentMonthOverrides: monthOverrides,
     }))
     setSelectedDate(null)
     showToast(`Template “${template.name}” loaded`)
@@ -182,7 +189,7 @@ function App() {
 
   function deleteActiveTemplate() {
     const activeTemplate = state.templates.find((template) => template.id === state.activeTemplateId)
-    if (!activeTemplate || !window.confirm(`Delete the saved template “${activeTemplate.name}”?`)) return
+    if (!activeTemplate || activeTemplate.builtIn || !window.confirm(`Delete the saved template “${activeTemplate.name}”?`)) return
     updateState((current) => ({
       ...current,
       templates: current.templates.filter((template) => template.id !== activeTemplate.id),
@@ -195,10 +202,19 @@ function App() {
     return Object.keys(state.currentMonthOverrides).length > 0
   }
 
+  function getTemplateOverridesForMonth(year: number, month: number): Record<string, DaySchedule> {
+    const activeTemplate = state.templates.find((template) => template.id === state.activeTemplateId)
+    if (!activeTemplate) return {}
+    const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}-`
+    return cloneMonthOverrides(Object.fromEntries(
+      Object.entries(activeTemplate.monthOverrides).filter(([key]) => key.startsWith(monthPrefix)),
+    ))
+  }
+
   function changeMonth(year: number, month: number, message = 'Change month? Date-specific edits for the current month will be cleared.') {
     if (year === state.selectedYear && month === state.selectedMonth) return
     if (hasPendingOverrides() && !window.confirm(message)) return
-    updateState((current) => ({ ...current, selectedYear: year, selectedMonth: month, currentMonthOverrides: {} }))
+    updateState((current) => ({ ...current, selectedYear: year, selectedMonth: month, currentMonthOverrides: getTemplateOverridesForMonth(year, month) }))
     setSelectedDate(null)
   }
 
