@@ -21,8 +21,13 @@ function getExistingTime(employeeId: string, template: Record<Weekday, DaySchedu
 
 export default function QuickSetupModal({ employees, template, onClose, onSave }: QuickSetupModalProps) {
   const [selectedDays, setSelectedDays] = useState<Weekday[]>([1, 2, 3, 4])
+  const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>(() => employees.map((employee) => employee.id))
+  const [employeeToAdd, setEmployeeToAdd] = useState('')
   const [times, setTimes] = useState<Record<string, string>>(() => Object.fromEntries(employees.map((employee) => [employee.id, getExistingTime(employee.id, template)])))
   const [error, setError] = useState('')
+
+  const selectedEmployees = employees.filter((employee) => selectedEmployeeIds.includes(employee.id))
+  const availableEmployees = employees.filter((employee) => !selectedEmployeeIds.includes(employee.id))
 
   useEffect(() => {
     function closeOnEscape(event: KeyboardEvent) {
@@ -37,19 +42,35 @@ export default function QuickSetupModal({ employees, template, onClose, onSave }
     setError('')
   }
 
+  function removeTeamMember(employeeId: string) {
+    setSelectedEmployeeIds((current) => current.filter((id) => id !== employeeId))
+    setError('')
+  }
+
+  function addTeamMember(employeeId: string) {
+    if (!employeeId) return
+    setSelectedEmployeeIds((current) => current.includes(employeeId) ? current : [...current, employeeId])
+    setEmployeeToAdd('')
+    setError('')
+  }
+
   function save() {
     if (selectedDays.length === 0) {
       setError('Select at least one recurring weekday.')
       return
     }
-    if (employees.some((employee) => !times[employee.id])) {
-      setError('Choose a time for every team member before creating the pattern.')
+    if (selectedEmployeeIds.length === 0) {
+      setError('Select at least one team member.')
+      return
+    }
+    if (selectedEmployees.some((employee) => !times[employee.id])) {
+      setError('Choose a time for every selected team member before creating the pattern.')
       return
     }
 
     const updates: Partial<Record<Weekday, DaySchedule>> = {}
     for (const day of selectedDays) {
-      const entries: ScheduleEntry[] = employees.map((employee) => ({
+      const entries: ScheduleEntry[] = selectedEmployees.map((employee) => ({
         id: `${employee.id}-${day}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         employeeId: employee.id,
         kind: 'shift',
@@ -93,15 +114,28 @@ export default function QuickSetupModal({ employees, template, onClose, onSave }
 
           <div className="quick-setup-section">
             <div className="quick-section-heading">
-              <div><h3>Team times</h3><p>These times repeat on each selected weekday.</p></div>
+              <div><h3>Team times</h3><p>Select the employees for this team and set their time. These times repeat on each selected weekday.</p></div>
+              <span>{selectedEmployees.length} selected</span>
             </div>
             <div className="quick-team-list">
-              {employees.map((employee) => (
+              {selectedEmployees.map((employee) => (
                 <div className="quick-team-row" key={employee.id}>
                   <strong>{employee.name}</strong>
-                  <TimePicker value={times[employee.id] ?? ''} onChange={(label) => setTimes((current) => ({ ...current, [employee.id]: label }))} />
+                  <div className="quick-team-row-actions">
+                    <TimePicker value={times[employee.id] ?? ''} onChange={(label) => setTimes((current) => ({ ...current, [employee.id]: label }))} />
+                    <button className="small-action danger" type="button" onClick={() => removeTeamMember(employee.id)} aria-label={`Remove ${employee.name} from this team`} title="Remove from team"><Icon name="x" size={15} /></button>
+                  </div>
                 </div>
               ))}
+              {availableEmployees.length > 0 && (
+                <div className="quick-add-team-member">
+                  <select value={employeeToAdd} onChange={(event) => addTeamMember(event.target.value)} aria-label="Add employee to this team">
+                    <option value="">Add employee to this team</option>
+                    {availableEmployees.map((employee) => <option value={employee.id} key={employee.id}>{employee.name}</option>)}
+                  </select>
+                </div>
+              )}
+              {selectedEmployees.length === 0 && <div className="empty-panel quick-team-empty">No employees selected. Use the field above to add someone.</div>}
             </div>
           </div>
           {error && <p className="form-error" role="alert">{error}</p>}
