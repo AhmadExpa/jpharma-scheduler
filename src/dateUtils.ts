@@ -15,24 +15,19 @@ export const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ]
 
-export const SAMPLE_TEMPLATE_ID = 'builtin-pharmacists-schedule-v2'
+export const SAMPLE_TEMPLATE_ID = 'builtin-pharmacists-schedule-v3'
 
 type SampleRow = { employeeId: string; kind: EntryKind; label: string }
 
-const SAMPLE_EMPLOYEE_NAMES = ['Beena', 'Bunmi', 'Chinenye', 'Esther', 'Elile', 'Gerren', 'Jonathan', 'Obi', 'Santana', 'Chris']
+const SAMPLE_EMPLOYEE_NAMES = ['Bunmi', 'Chinenye', 'Esther', 'Elile', 'Gerren', 'Jonathan', 'Obi', 'Santana']
 const SAMPLE_EMPLOYEE_IDS = SAMPLE_EMPLOYEE_NAMES.map((name) => `sample-${name.toLowerCase()}`)
 
 function sampleShift(employeeId: string, label: string): SampleRow {
   return { employeeId, kind: 'shift', label }
 }
 
-function sampleOff(employeeId: string, label: string): SampleRow {
-  return { employeeId, kind: 'off', label }
-}
-
 function sampleCommonRows(): SampleRow[] {
   return [
-    sampleShift('sample-beena', '6:00 AM'),
     sampleShift('sample-bunmi', '7:30 AM'),
     sampleShift('sample-chinenye', '7:30 AM'),
     sampleShift('sample-esther', '7:30 AM'),
@@ -41,7 +36,6 @@ function sampleCommonRows(): SampleRow[] {
     sampleShift('sample-jonathan', '7:30 AM'),
     sampleShift('sample-obi', '7:30 AM'),
     sampleShift('sample-santana', '7:30 AM'),
-    sampleShift('sample-chris', '2:00 PM'),
   ]
 }
 
@@ -55,10 +49,6 @@ function sampleDay(key: string, rows: SampleRow[], note = ''): DaySchedule {
       label: row.label,
     })),
   }
-}
-
-function sampleRowsWithOff(employeeId: string, label: string): SampleRow[] {
-  return sampleCommonRows().map((row) => row.employeeId === employeeId ? sampleOff(employeeId, label) : row)
 }
 
 export function createSampleTemplate(): ScheduleTemplate {
@@ -79,11 +69,7 @@ export function createSampleTemplate(): ScheduleTemplate {
     builtIn: true,
     employees,
     weeklyTemplate,
-    monthOverrides: {
-      '2026-08-06': sampleDay('2026-08-06', sampleRowsWithOff('sample-elile', 'OFF')),
-      '2026-08-12': sampleDay('2026-08-12', sampleRowsWithOff('sample-santana', 'OFF')),
-      '2026-08-18': sampleDay('2026-08-18', sampleRowsWithOff('sample-beena', 'OFF(JD)')),
-    },
+    monthOverrides: {},
   }
 }
 
