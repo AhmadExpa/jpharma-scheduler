@@ -68,7 +68,7 @@ function cleanState(value: unknown): SchedulerState {
     ? value.templates.map(cleanTemplateRecord).filter((template): template is ScheduleTemplate => template !== null)
     : []
   const sampleTemplate = createSampleTemplate()
-  const templates = [sampleTemplate, ...savedTemplates.filter((template) => template.id !== SAMPLE_TEMPLATE_ID)]
+  const templates = [sampleTemplate, ...savedTemplates.filter((template) => template.id !== SAMPLE_TEMPLATE_ID && !template.builtIn)]
 
   const selectedYear = typeof value.selectedYear === 'number' && Number.isFinite(value.selectedYear)
     ? Math.round(value.selectedYear)

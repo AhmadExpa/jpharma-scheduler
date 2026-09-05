@@ -15,13 +15,12 @@ export const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ]
 
-export const SAMPLE_TEMPLATE_ID = 'builtin-pharmacists-august-2026'
+export const SAMPLE_TEMPLATE_ID = 'builtin-pharmacists-schedule-v2'
 
 type SampleRow = { employeeId: string; kind: EntryKind; label: string }
 
 const SAMPLE_EMPLOYEE_NAMES = ['Beena', 'Bunmi', 'Chinenye', 'Esther', 'Elile', 'Gerren', 'Jonathan', 'Obi', 'Santana', 'Chris']
 const SAMPLE_EMPLOYEE_IDS = SAMPLE_EMPLOYEE_NAMES.map((name) => `sample-${name.toLowerCase()}`)
-const SAMPLE_FRIDAY_NOTE = '***Friday schedule as needed***'
 
 function sampleShift(employeeId: string, label: string): SampleRow {
   return { employeeId, kind: 'shift', label }
@@ -70,7 +69,7 @@ export function createSampleTemplate(): ScheduleTemplate {
     2: sampleDay('weekly-tuesday', sampleCommonRows()),
     3: sampleDay('weekly-wednesday', sampleCommonRows()),
     4: sampleDay('weekly-thursday', sampleCommonRows()),
-    5: sampleDay('weekly-friday', [sampleShift('sample-beena', '6:00 AM'), sampleShift('sample-chris', '2:00 PM')], SAMPLE_FRIDAY_NOTE),
+    5: sampleDay('weekly-friday', sampleCommonRows()),
     6: createEmptyDay(),
   }
 
@@ -82,12 +81,8 @@ export function createSampleTemplate(): ScheduleTemplate {
     weeklyTemplate,
     monthOverrides: {
       '2026-08-06': sampleDay('2026-08-06', sampleRowsWithOff('sample-elile', 'OFF')),
-      '2026-08-07': sampleDay('2026-08-07', [sampleShift('sample-bunmi', '8:00 AM'), sampleShift('sample-beena', '6:00 AM'), sampleShift('sample-chris', '2:00 PM')], SAMPLE_FRIDAY_NOTE),
       '2026-08-12': sampleDay('2026-08-12', sampleRowsWithOff('sample-santana', 'OFF')),
-      '2026-08-14': sampleDay('2026-08-14', [sampleShift('sample-chinenye', '8:00 AM'), sampleShift('sample-beena', '6:00 AM'), sampleShift('sample-chris', '2:00 PM')], SAMPLE_FRIDAY_NOTE),
       '2026-08-18': sampleDay('2026-08-18', sampleRowsWithOff('sample-beena', 'OFF(JD)')),
-      '2026-08-21': sampleDay('2026-08-21', [sampleShift('sample-esther', '8:00 AM'), sampleShift('sample-beena', '6:00 AM'), sampleShift('sample-chris', '2:00 PM')], SAMPLE_FRIDAY_NOTE),
-      '2026-08-28': sampleDay('2026-08-28', [sampleShift('sample-elile', '8:00 AM'), sampleShift('sample-beena', '6:00 AM'), sampleShift('sample-chris', '2:00 PM')], SAMPLE_FRIDAY_NOTE),
     },
   }
 }
