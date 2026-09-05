@@ -379,7 +379,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--mint-strong); bo
   .print-kicker { margin: 0 0 4px; color: #4d6758; font-size: 9pt; font-weight: 700; letter-spacing: .11em; line-height: 1.1; text-transform: uppercase; }
   .print-heading h1 { margin: 0; font-size: 23pt; letter-spacing: -.04em; line-height: 1.02; }
   .print-generated { margin: .18in 0 0; color: #819087; font-size: 8pt; }
-  .calendar-grid { height: 6.2in; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: .32in repeat(6, minmax(0, 1fr)); border-top: .75pt solid #aebbb1; border-left: .75pt solid #aebbb1; break-inside: avoid; page-break-inside: avoid; }
+  .calendar-grid { height: 6.2in; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: .32in repeat(5, minmax(0, 1fr)); border-top: .75pt solid #aebbb1; border-left: .75pt solid #aebbb1; break-inside: avoid; page-break-inside: avoid; }
+  .calendar-grid.calendar-grid-weeks-6 { grid-template-rows: .32in repeat(6, minmax(0, 1fr)); }
   .calendar-weekday { min-height: 0; padding: 5px 8px; color: #536159; border-right: .75pt solid #aebbb1; border-bottom: .75pt solid #aebbb1; background: #f3f6f3; font-size: 7pt; }
   .calendar-cell { min-height: 0; height: auto; overflow: hidden; padding: 5px 6px 4px; border-right: .75pt solid #aebbb1; border-bottom: .75pt solid #aebbb1; cursor: default; }
   .calendar-cell[role="button"]:hover { box-shadow: none; }

@@ -43,7 +43,7 @@ export default function ScheduleCalendar({ year, month, scheduleTitle, employees
         <p className="print-generated">Prepared schedule</p>
       </div>
 
-      <div className="calendar-grid">
+      <div className={`calendar-grid calendar-grid-weeks-${cells.length / 7}`}>
         {WEEKDAYS.map((day) => <div className="calendar-weekday" key={day.value}>{day.long}</div>)}
         {cells.map((date, index) => {
           if (!date) return <div className="calendar-cell blank-cell" key={`blank-${index}`} aria-hidden="true" />
