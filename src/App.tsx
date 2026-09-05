@@ -302,36 +302,11 @@ function App() {
     changeMonth(today.getFullYear(), today.getMonth())
   }
 
-  function regenerateMonth() {
-    if (!hasPendingOverrides()) {
-      showToast('The calendar is already following the weekly pattern')
-      return
-    }
-    setConfirmAction({
-      eyebrow: 'Regenerate month',
-      title: 'Regenerate this month?',
-      message: 'All date-specific edits will be cleared and the calendar will follow the weekly pattern again.',
-      confirmLabel: 'Regenerate month',
-      icon: 'refresh',
-      onConfirm: regenerateCurrentMonth,
-    })
-  }
-
-  function regenerateCurrentMonth() {
-    updateState((current) => ({ ...current, currentMonthOverrides: {} }))
-    setSelectedDate(null)
-    showToast(`${formatMonthYear(state.selectedYear, state.selectedMonth)} regenerated`)
-  }
-
   function resetCalendar() {
-    if (totalTemplateEntries === 0 && !hasPendingOverrides()) {
-      showToast('The calendar is already empty')
-      return
-    }
     setConfirmAction({
-      eyebrow: 'Reset calendar',
+      eyebrow: 'Warning',
       title: 'Reset this calendar?',
-      message: 'This will remove all recurring shifts and date-specific changes. Your employees, title, and saved templates will stay in place.',
+      message: 'This will permanently remove all recurring shifts and date-specific changes from this schedule. Your employees, title, and saved templates will stay in place. This action cannot be undone.',
       confirmLabel: 'Reset calendar',
       danger: true,
       icon: 'refresh',
@@ -456,7 +431,6 @@ function App() {
                   <button className="icon-button" type="button" onClick={nextMonth} aria-label="Next month" title="Next month"><Icon name="arrow-right" /></button>
                 </div>
                 <button className="button secondary" type="button" onClick={goToCurrentMonth}>Today</button>
-                <button className="button ghost" type="button" onClick={regenerateMonth} title="Clear date-specific changes and use the recurring pattern"><Icon name="refresh" size={15} /> Regenerate</button>
                 <button className="button ghost danger-text" type="button" onClick={resetCalendar} title="Clear all shifts from this calendar"><Icon name="refresh" size={15} /> Reset calendar</button>
               </div>
             </div>

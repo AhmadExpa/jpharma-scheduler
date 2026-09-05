@@ -22,9 +22,8 @@ Open the local URL shown by Vite.
 7. Click any calendar date, choose **Add slot**, and select the employee and time for a one-off change.
 8. For schedules that repeat, use **Quick setup for the team** to set employee times once for selected weekdays.
 9. Use the weekly pattern tabs for special weekday rules, such as Friday coverage or days off.
-10. Use **Regenerate** to remove date-specific edits and return to the recurring pattern.
-11. Use **Reset calendar** to clear all shifts while keeping your employees, title, and saved templates.
-12. Use **Print / Save PDF** to print the schedule or save it as a PDF from the browser dialog.
+10. Use **Reset calendar** to clear all shifts while keeping your employees, title, and saved templates.
+11. Use **Print / Save PDF** to print the schedule or save it as a PDF from the browser dialog.
 
 The active workspace and saved templates are stored in the current browser with `localStorage`. There is no server, sign-in, database, or schedule history.
 
