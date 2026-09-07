@@ -15,7 +15,7 @@ export const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ]
 
-export const SAMPLE_TEMPLATE_ID = 'builtin-pharmacists-schedule-v5'
+export const SAMPLE_TEMPLATE_ID = 'builtin-pharmacists-schedule-v6'
 
 type SampleRow = { employeeId: string; kind: EntryKind; label: string }
 
