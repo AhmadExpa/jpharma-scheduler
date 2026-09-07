@@ -21,7 +21,7 @@ Open the local URL shown by Vite.
 6. For a new month, select a saved template to instantly restore the employees and recurring shift times. The app asks for confirmation before replacing the current month setup. The built-in sample cannot be updated or deleted and can be used in any month.
 7. Click any calendar date, choose **Add slot**, and select the employee and time for a one-off change.
 8. For schedules that repeat, use **Quick setup for the team** to set employee times once for selected weekdays.
-9. Use the weekly pattern tabs for special weekday rules, such as Friday coverage or days off.
+9. Use the calendar date editor for special changes, such as Friday coverage notes or days off.
 10. Use **Reset calendar** to clear all shifts while keeping your employees, title, and saved templates.
 11. Use **Print / Save PDF** to print the schedule or save it as a PDF from the browser dialog.
 

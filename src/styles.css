@@ -89,6 +89,13 @@ h1, h2, h3 { font-family: Manrope, sans-serif; color: var(--ink); }
 .quick-setup-button strong { font-size: 10px; }
 .quick-setup-button small { margin-top: 2px; color: var(--muted); font-size: 9px; }
 .quick-setup-icon { width: 26px; height: 26px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 7px; background: var(--mint); }
+.recurring-summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: #fbfcfb; }
+.recurring-summary div { min-width: 0; }
+.recurring-summary strong, .recurring-summary span { display: block; }
+.recurring-summary strong { color: var(--ink); font-size: 11px; }
+.recurring-summary div span { margin-top: 3px; color: var(--muted); font-size: 10px; }
+.recurring-summary .count-pill { display: block; flex: 0 0 auto; margin-left: 0; }
+.recurring-help { margin: 11px 0 0; color: var(--faint); font-size: 10px; line-height: 1.4; }
 .add-row { display: flex; gap: 7px; }
 input, select, textarea { color: var(--ink); border: 1px solid var(--line-strong); border-radius: 9px; background: #fff; transition: border-color .15s, box-shadow .15s; }
 input:focus, select:focus, textarea:focus { border-color: var(--mint-strong); box-shadow: 0 0 0 3px rgba(82,167,123,.12); outline: none; }

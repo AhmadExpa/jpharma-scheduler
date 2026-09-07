@@ -19,7 +19,7 @@ import {
   WEEKDAYS,
 } from './dateUtils'
 import { loadState, saveState } from './storage'
-import type { DaySchedule, Employee, ScheduleEntry, SchedulerState, ScheduleTemplate, Weekday } from './types'
+import type { DaySchedule, Employee, SchedulerState, ScheduleTemplate, Weekday } from './types'
 
 interface ConfirmAction {
   eyebrow?: string
@@ -133,13 +133,6 @@ function App() {
       employees.splice(nextIndex, 0, moved)
       return { ...current, employees }
     })
-  }
-
-  function updateTemplateDay(day: Weekday, value: DaySchedule) {
-    updateState((current) => ({
-      ...current,
-      weeklyTemplate: { ...current.weeklyTemplate, [day]: value },
-    }))
   }
 
   function updateTemplateDays(updates: Partial<Record<Weekday, DaySchedule>>) {
@@ -388,7 +381,7 @@ function App() {
         <div className="workspace-layout">
           <aside className="control-rail no-print">
             <EmployeeManager employees={state.employees} onAdd={addEmployee} onRename={renameEmployee} onDelete={deleteEmployee} onMove={moveEmployee} />
-            <TemplateEditor employees={state.employees} template={state.weeklyTemplate} onUpdateDay={updateTemplateDay} onUpdateDays={updateTemplateDays} />
+            <TemplateEditor employees={state.employees} template={state.weeklyTemplate} onUpdateDays={updateTemplateDays} />
           </aside>
 
           <section className="schedule-area">
