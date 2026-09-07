@@ -15,28 +15,53 @@ export const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ]
 
-export const SAMPLE_TEMPLATE_ID = 'builtin-pharmacists-schedule-v3'
+export const SAMPLE_TEMPLATE_ID = 'builtin-pharmacists-schedule-v5'
 
 type SampleRow = { employeeId: string; kind: EntryKind; label: string }
 
-const SAMPLE_EMPLOYEE_NAMES = ['Bunmi', 'Chinenye', 'Esther', 'Elile', 'Gerren', 'Jonathan', 'Obi', 'Santana']
+const SAMPLE_EMPLOYEE_NAMES = ['Bunmi', 'Chinenye', 'Esther', 'Elile', 'Gerren', 'Jonathan', 'Obi', 'Santana', 'Jose', 'Beena', 'Chris']
 const SAMPLE_EMPLOYEE_IDS = SAMPLE_EMPLOYEE_NAMES.map((name) => `sample-${name.toLowerCase()}`)
 
 function sampleShift(employeeId: string, label: string): SampleRow {
   return { employeeId, kind: 'shift', label }
 }
 
+function sampleOff(employeeId: string, label: string): SampleRow {
+  return { employeeId, kind: 'off', label }
+}
+
 function sampleCommonRows(): SampleRow[] {
   return [
-    sampleShift('sample-bunmi', '7:30 AM'),
-    sampleShift('sample-chinenye', '7:30 AM'),
+    sampleShift('sample-bunmi', '9:00 AM'),
+    sampleShift('sample-chinenye', '9:00 AM'),
     sampleShift('sample-esther', '7:30 AM'),
-    sampleShift('sample-elile', '7:30 AM'),
-    sampleShift('sample-gerren', '7:30 AM'),
+    sampleShift('sample-elile', '9:00 AM'),
+    sampleShift('sample-gerren', '10:00 AM'),
     sampleShift('sample-jonathan', '7:30 AM'),
-    sampleShift('sample-obi', '7:30 AM'),
-    sampleShift('sample-santana', '7:30 AM'),
+    sampleShift('sample-obi', '9:00 AM'),
+    sampleShift('sample-santana', '9:00 AM'),
+    sampleShift('sample-jose', '9:00 AM'),
   ]
+}
+
+function sampleFridayRows(): SampleRow[] {
+  return [
+    sampleShift('sample-bunmi', '8:00 AM'),
+    sampleShift('sample-chinenye', 'As needed'),
+    sampleShift('sample-esther', 'As needed'),
+    sampleShift('sample-elile', 'As needed'),
+    sampleShift('sample-gerren', 'As needed'),
+    sampleShift('sample-jonathan', 'As needed'),
+    sampleShift('sample-obi', 'As needed'),
+    sampleShift('sample-santana', 'As needed'),
+    sampleShift('sample-jose', 'As needed'),
+    sampleShift('sample-beena', '6:00 AM'),
+    sampleShift('sample-chris', '2:00 PM'),
+  ]
+}
+
+function sampleRowsWithOff(rows: SampleRow[], employeeId: string, label = 'OFF'): SampleRow[] {
+  return rows.map((row) => row.employeeId === employeeId ? sampleOff(employeeId, label) : row)
 }
 
 function sampleDay(key: string, rows: SampleRow[], note = ''): DaySchedule {
@@ -59,7 +84,7 @@ export function createSampleTemplate(): ScheduleTemplate {
     2: sampleDay('weekly-tuesday', sampleCommonRows()),
     3: sampleDay('weekly-wednesday', sampleCommonRows()),
     4: sampleDay('weekly-thursday', sampleCommonRows()),
-    5: sampleDay('weekly-friday', sampleCommonRows()),
+    5: sampleDay('weekly-friday', sampleFridayRows()),
     6: createEmptyDay(),
   }
 
@@ -69,7 +94,13 @@ export function createSampleTemplate(): ScheduleTemplate {
     builtIn: true,
     employees,
     weeklyTemplate,
-    monthOverrides: {},
+    monthOverrides: {
+      '2026-09-11': sampleDay('2026-09-11', sampleRowsWithOff(sampleFridayRows(), 'sample-esther')),
+      '2026-09-17': sampleDay('2026-09-17', sampleRowsWithOff(sampleCommonRows(), 'sample-jonathan')),
+      '2026-09-18': sampleDay('2026-09-18', sampleRowsWithOff(sampleFridayRows(), 'sample-jonathan')),
+      '2027-09-17': sampleDay('2027-09-17', sampleRowsWithOff(sampleFridayRows(), 'sample-jonathan')),
+    },
+    monthDayOverrides: {},
   }
 }
 
@@ -98,6 +129,7 @@ export function createDefaultTemplate(): WeeklyTemplate {
 
 export function createDefaultState(): SchedulerState {
   const sample = createSampleTemplate()
+  const today = new Date()
   return {
     version: 1,
     scheduleTitle: 'Pharmacists Schedule',
@@ -105,9 +137,9 @@ export function createDefaultState(): SchedulerState {
     weeklyTemplate: cloneWeeklyTemplate(sample.weeklyTemplate),
     templates: [sample],
     activeTemplateId: sample.id,
-    selectedYear: 2026,
-    selectedMonth: 7,
-    currentMonthOverrides: cloneMonthOverrides(sample.monthOverrides),
+    selectedYear: today.getFullYear(),
+    selectedMonth: today.getMonth(),
+    currentMonthOverrides: getTemplateOverridesForMonth(sample, today.getFullYear(), today.getMonth()),
   }
 }
 
@@ -130,6 +162,16 @@ export function cloneMonthOverrides(overrides: Record<string, DaySchedule>): Rec
       entries: day.entries.map((entry) => ({ ...entry })),
     }]),
   )
+}
+
+export function getTemplateOverridesForMonth(template: ScheduleTemplate, year: number, month: number): Record<string, DaySchedule> {
+  const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}-`
+  const reusableMonthOverrides = Object.entries(template.monthDayOverrides)
+    .filter(([key]) => key.startsWith(`${String(month + 1).padStart(2, '0')}-`))
+    .map(([key, day]) => [`${year}-${key}`, day] as const)
+  const exactMonthOverrides = Object.entries(template.monthOverrides)
+    .filter(([key]) => key.startsWith(monthPrefix))
+  return cloneMonthOverrides(Object.fromEntries([...reusableMonthOverrides, ...exactMonthOverrides]))
 }
 
 export function cloneEntries(entries: ScheduleEntry[]): ScheduleEntry[] {

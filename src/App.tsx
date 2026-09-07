@@ -9,12 +9,12 @@ import ConfirmModal from './components/ConfirmModal'
 import TextInputModal from './components/TextInputModal'
 import {
   cloneWeeklyTemplate,
-  cloneMonthOverrides,
   createId,
   createDefaultTemplate,
   dateKey,
   formatMonthYear,
   getDaySchedule,
+  getTemplateOverridesForMonth as getMonthTemplateOverrides,
   MONTHS,
   WEEKDAYS,
 } from './dateUtils'
@@ -171,6 +171,7 @@ function App() {
       employees: state.employees.map((employee) => ({ ...employee })),
       weeklyTemplate: cloneWeeklyTemplate(state.weeklyTemplate),
       monthOverrides: {},
+      monthDayOverrides: {},
     }
     updateState((current) => ({
       ...current,
@@ -215,10 +216,7 @@ function App() {
   function applyTemplate(templateId: string) {
     const template = state.templates.find((item) => item.id === templateId)
     if (!template) return
-    const monthPrefix = `${state.selectedYear}-${String(state.selectedMonth + 1).padStart(2, '0')}-`
-    const monthOverrides = cloneMonthOverrides(Object.fromEntries(
-      Object.entries(template.monthOverrides).filter(([key]) => key.startsWith(monthPrefix)),
-    ))
+    const monthOverrides = getMonthTemplateOverrides(template, state.selectedYear, state.selectedMonth)
     updateState((current) => ({
       ...current,
       employees: template.employees.map((employee) => ({ ...employee })),
@@ -259,11 +257,7 @@ function App() {
 
   function getTemplateOverridesForMonth(year: number, month: number): Record<string, DaySchedule> {
     const activeTemplate = state.templates.find((template) => template.id === state.activeTemplateId)
-    if (!activeTemplate) return {}
-    const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}-`
-    return cloneMonthOverrides(Object.fromEntries(
-      Object.entries(activeTemplate.monthOverrides).filter(([key]) => key.startsWith(monthPrefix)),
-    ))
+    return activeTemplate ? getMonthTemplateOverrides(activeTemplate, year, month) : {}
   }
 
   function changeMonth(year: number, month: number, message = 'Change month? Date-specific edits for the current month will be cleared.') {

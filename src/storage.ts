@@ -41,20 +41,26 @@ function cleanEmployees(value: unknown): Employee[] {
     : []
 }
 
+function cleanOverrides(value: unknown): Record<string, DaySchedule> {
+  const overrides: Record<string, DaySchedule> = {}
+  if (isRecord(value)) {
+    for (const [key, day] of Object.entries(value)) overrides[key] = cleanDay(day)
+  }
+  return overrides
+}
+
 function cleanTemplateRecord(value: unknown): ScheduleTemplate | null {
   if (!isRecord(value) || typeof value.id !== 'string' || typeof value.name !== 'string') return null
   const name = value.name.trim()
   if (!name) return null
-  const monthOverrides: Record<string, DaySchedule> = {}
-  if (isRecord(value.monthOverrides)) {
-    for (const [key, day] of Object.entries(value.monthOverrides)) monthOverrides[key] = cleanDay(day)
-  }
+  const monthOverrides = cleanOverrides(value.monthOverrides)
   return {
     id: value.id,
     name,
     builtIn: value.builtIn === true,
     employees: cleanEmployees(value.employees),
     weeklyTemplate: cleanTemplate(value.weeklyTemplate),
+    monthDayOverrides: cleanOverrides(value.monthDayOverrides),
     monthOverrides,
   }
 }

@@ -27,6 +27,7 @@ export interface ScheduleTemplate {
   employees: Employee[]
   weeklyTemplate: WeeklyTemplate
   monthOverrides: Record<string, DaySchedule>
+  monthDayOverrides: Record<string, DaySchedule>
 }
 
 export interface SchedulerState {
