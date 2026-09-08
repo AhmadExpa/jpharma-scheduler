@@ -15,7 +15,7 @@ export const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ]
 
-export const SAMPLE_TEMPLATE_ID = 'builtin-pharmacists-schedule-v6'
+export const SAMPLE_TEMPLATE_ID = 'builtin-pharmacists-schedule-v7'
 
 type SampleRow = { employeeId: string; kind: EntryKind; label: string }
 
@@ -44,22 +44,6 @@ function sampleCommonRows(): SampleRow[] {
   ]
 }
 
-function sampleFridayRows(): SampleRow[] {
-  return [
-    sampleShift('sample-bunmi', '8:00 AM'),
-    sampleShift('sample-chinenye', 'As needed'),
-    sampleShift('sample-esther', 'As needed'),
-    sampleShift('sample-elile', 'As needed'),
-    sampleShift('sample-gerren', 'As needed'),
-    sampleShift('sample-jonathan', 'As needed'),
-    sampleShift('sample-obi', 'As needed'),
-    sampleShift('sample-santana', 'As needed'),
-    sampleShift('sample-jose', 'As needed'),
-    sampleShift('sample-beena', '6:00 AM'),
-    sampleShift('sample-chris', '2:00 PM'),
-  ]
-}
-
 function sampleRowsWithOff(rows: SampleRow[], employeeId: string, label = 'OFF'): SampleRow[] {
   return rows.map((row) => row.employeeId === employeeId ? sampleOff(employeeId, label) : row)
 }
@@ -84,7 +68,7 @@ export function createSampleTemplate(): ScheduleTemplate {
     2: sampleDay('weekly-tuesday', sampleCommonRows()),
     3: sampleDay('weekly-wednesday', sampleCommonRows()),
     4: sampleDay('weekly-thursday', sampleCommonRows()),
-    5: sampleDay('weekly-friday', sampleFridayRows()),
+    5: sampleDay('weekly-friday', sampleCommonRows()),
     6: createEmptyDay(),
   }
 
@@ -95,10 +79,10 @@ export function createSampleTemplate(): ScheduleTemplate {
     employees,
     weeklyTemplate,
     monthOverrides: {
-      '2026-09-11': sampleDay('2026-09-11', sampleRowsWithOff(sampleFridayRows(), 'sample-esther')),
+      '2026-09-11': sampleDay('2026-09-11', sampleRowsWithOff(sampleCommonRows(), 'sample-esther')),
       '2026-09-17': sampleDay('2026-09-17', sampleRowsWithOff(sampleCommonRows(), 'sample-jonathan')),
-      '2026-09-18': sampleDay('2026-09-18', sampleRowsWithOff(sampleFridayRows(), 'sample-jonathan')),
-      '2027-09-17': sampleDay('2027-09-17', sampleRowsWithOff(sampleFridayRows(), 'sample-jonathan')),
+      '2026-09-18': sampleDay('2026-09-18', sampleRowsWithOff(sampleCommonRows(), 'sample-jonathan')),
+      '2027-09-17': sampleDay('2027-09-17', sampleRowsWithOff(sampleCommonRows(), 'sample-jonathan')),
     },
     monthDayOverrides: {},
   }
