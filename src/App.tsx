@@ -391,7 +391,7 @@ function App() {
         <div className="header-actions">
           <InfoTag className="header-info-tag"><span className="save-dot" /> Saved automatically here</InfoTag>
           <button className="button secondary demo-button" type="button" onClick={() => setDemoOpen(true)} data-demo-target="demo-button"><Icon name="play" size={15} /> Show me how</button>
-          <button className="button primary" type="button" onClick={() => window.print()}><Icon name="printer" size={16} /> Print / Save PDF</button>
+          <button className="button primary" type="button" onClick={() => window.print()} data-demo-target="print-button"><Icon name="printer" size={16} /> Print / Save PDF</button>
         </div>
       </header>
 
