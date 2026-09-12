@@ -327,6 +327,24 @@ input:focus, select:focus, textarea:focus { border-color: var(--mint-strong); bo
 .day-more-details summary { color: var(--muted); cursor: pointer; font-size: 10px; font-weight: 700; }
 .day-more-details .note-input { margin-top: 8px; }
 .modal-secondary-actions { display: flex; align-items: center; gap: 4px; }
+.demo-button { white-space: nowrap; }
+.demo-overlay { position: fixed; z-index: 30; inset: 0; pointer-events: auto; }
+.demo-overlay-no-target { background: rgba(25, 43, 32, .62); }
+.demo-spotlight { position: fixed; z-index: 0; border: 2px solid var(--mint-strong); border-radius: 10px; box-shadow: 0 0 0 9999px rgba(25, 43, 32, .62), 0 0 0 5px rgba(82, 167, 123, .18); pointer-events: none; }
+.demo-popover { position: fixed; z-index: 1; width: min(340px, calc(100vw - 32px)); padding: 15px; border: 1px solid #dce9df; border-radius: 14px; background: #fff; box-shadow: 0 18px 50px rgba(24, 42, 30, .28); }
+.demo-popover-centered { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+.demo-popover-topline { display: flex; align-items: center; gap: 7px; color: var(--mint-deep); font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.demo-tour-icon { width: 24px; height: 24px; display: grid; place-items: center; color: #fff; border-radius: 7px; background: var(--mint-strong); }
+.demo-close { width: 26px; height: 26px; display: grid; place-items: center; margin-left: auto; padding: 0; color: var(--faint); border: 0; border-radius: 7px; background: transparent; }
+.demo-close:hover { color: var(--ink); background: #eef4ef; }
+.demo-popover h2 { margin: 12px 0 6px; font-size: 17px; letter-spacing: -.035em; }
+.demo-popover p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.demo-progress { display: flex; gap: 4px; margin-top: 14px; }
+.demo-progress span { width: 19px; height: 4px; border-radius: 99px; background: var(--line); }
+.demo-progress span.active { background: var(--mint-strong); }
+.demo-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 14px; }
+.demo-next-actions { display: flex; align-items: center; gap: 5px; }
+.demo-actions .button { min-height: 31px; padding-right: 9px; padding-left: 9px; font-size: 10px; }
 
 @media (max-width: 1180px) {
   .app-header, .app-main { padding-right: 25px; padding-left: 25px; }

@@ -11,6 +11,7 @@ export type IconName =
   | 'grip'
   | 'info'
   | 'plus'
+  | 'play'
   | 'printer'
   | 'refresh'
   | 'settings'
@@ -48,6 +49,7 @@ export default function Icon({ name, size = 18, ...props }: IconProps) {
     case 'grip': return <svg {...common}><circle cx="9" cy="6" r="1" fill="currentColor" stroke="none" /><circle cx="15" cy="6" r="1" fill="currentColor" stroke="none" /><circle cx="9" cy="12" r="1" fill="currentColor" stroke="none" /><circle cx="15" cy="12" r="1" fill="currentColor" stroke="none" /><circle cx="9" cy="18" r="1" fill="currentColor" stroke="none" /><circle cx="15" cy="18" r="1" fill="currentColor" stroke="none" /></svg>
     case 'info': return <svg {...common}><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></svg>
     case 'plus': return <svg {...common}><path d="M12 5v14M5 12h14" /></svg>
+    case 'play': return <svg {...common}><path d="m9 6 9 6-9 6V6Z" /></svg>
     case 'printer': return <svg {...common}><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><path d="M6 14h12v7H6z" /><path d="M18 12h.01" /></svg>
     case 'refresh': return <svg {...common}><path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 5v4h4M4 13a8.1 8.1 0 0 0 15.5 2M20 19v-4h-4" /></svg>
     case 'settings': return <svg {...common}><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" /><path d="m19.4 15 .1.1a2 2 0 0 1-2.8 2.8l-.1-.1a2 2 0 0 0-3.4 1.4v.2a2 2 0 0 1-4 0v-.2a2 2 0 0 0-3.4-1.4l-.1.1a2 2 0 0 1-2.8-2.8l.1-.1A2 2 0 0 0 1.7 11H1.5a2 2 0 0 1 0-4h.2a2 2 0 0 0 1.4-3.4L3 3.5A2 2 0 0 1 5.8.7l.1.1A2 2 0 0 0 9.3-.6v-.2a2 2 0 0 1 4 0v.2a2 2 0 0 0 3.4 1.4l.1-.1A2 2 0 0 1 19.6 3l-.1.1A2 2 0 0 0 20.9 6h.2a2 2 0 0 1 0 4h-.2a2 2 0 0 0-1.5 5Z" transform="scale(.83) translate(2.45 2.45)" /></svg>

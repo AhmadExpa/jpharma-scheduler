@@ -24,8 +24,8 @@ export default function ScheduleCalendar({ year, month, scheduleTitle, employees
   }
 
   return (
-    <section className="calendar-card" aria-labelledby="calendar-title">
-      <div className="calendar-toolbar no-print">
+    <section className="calendar-card" aria-labelledby="calendar-title" data-demo-target="calendar-card">
+      <div className="calendar-toolbar no-print" data-demo-target="calendar-overview">
         <div>
           <p className="eyebrow">Your calendar</p>
           <h2 id="calendar-title">{formatMonthYear(year, month)}</h2>
@@ -60,6 +60,7 @@ export default function ScheduleCalendar({ year, month, scheduleTitle, employees
               key={key}
               role="button"
               tabIndex={0}
+              data-demo-target={index === cells.findIndex((cell) => cell !== null) ? 'calendar-cell' : undefined}
               onClick={() => openDate(date)}
               onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openDate(date) } }}
               aria-label={`Edit ${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`}

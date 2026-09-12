@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import Icon from './components/Icon'
 import InfoTag from './components/InfoTag'
+import DemoTour from './components/DemoTour'
 import ScheduleCalendar from './components/ScheduleCalendar'
 import DayEditorModal from './components/DayEditorModal'
 import SimpleDayEditorModal from './components/SimpleDayEditorModal'
@@ -40,6 +41,7 @@ function App() {
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null)
   const [templateNameModalOpen, setTemplateNameModalOpen] = useState(false)
   const [advancedDayEditorOpen, setAdvancedDayEditorOpen] = useState(false)
+  const [demoOpen, setDemoOpen] = useState(false)
 
   useEffect(() => saveState(state), [state])
 
@@ -388,6 +390,7 @@ function App() {
         </div>
         <div className="header-actions">
           <InfoTag className="header-info-tag"><span className="save-dot" /> Saved automatically here</InfoTag>
+          <button className="button secondary demo-button" type="button" onClick={() => setDemoOpen(true)} data-demo-target="demo-button"><Icon name="play" size={15} /> Show me how</button>
           <button className="button primary" type="button" onClick={() => window.print()}><Icon name="printer" size={16} /> Print / Save PDF</button>
         </div>
       </header>
@@ -452,7 +455,7 @@ function App() {
 
           </section>
 
-          <details className="advanced-options no-print">
+          <details className="advanced-options no-print" data-demo-target="advanced-options">
             <summary><Icon name="settings" size={16} /> More options</summary>
             <div className="advanced-options-body">
               <div className="advanced-title-row">
@@ -529,6 +532,8 @@ function App() {
           onSubmit={saveCurrentAsTemplate}
         />
       )}
+
+      {demoOpen && <DemoTour onClose={() => setDemoOpen(false)} />}
 
       {confirmAction && (
         <ConfirmModal

@@ -68,7 +68,7 @@ export default function SimpleSetupCard({
   }
 
   return (
-    <section className="simple-setup-card control-card no-print" aria-labelledby="simple-setup-title">
+    <section className="simple-setup-card control-card no-print" aria-labelledby="simple-setup-title" data-demo-target="setup-card">
       <div className="simple-setup-heading">
         <div className="setup-number">1</div>
         <div>
@@ -86,8 +86,9 @@ export default function SimpleSetupCard({
           onChange={(event) => { setName(event.target.value); setError('') }}
           placeholder="Employee name"
           aria-label="New employee name"
+          data-demo-target="employee-name"
         />
-        <button className="button primary" type="submit"><Icon name="plus" size={16} /> Add employee</button>
+        <button className="button primary" type="submit" data-demo-target="add-employee"><Icon name="plus" size={16} /> Add employee</button>
       </form>
 
       {employees.length > 0 ? (
@@ -113,6 +114,7 @@ export default function SimpleSetupCard({
                 value={employee.defaultTime ?? ''}
                 onChange={(event) => { onTimeChange(employee.id, event.target.value); setError('') }}
                 aria-label={`Start time for ${employee.name}`}
+                data-demo-target={index === 0 ? 'employee-time' : undefined}
               />
               <button className="small-action danger" type="button" onClick={() => onDelete(employee.id)} aria-label={`Remove ${employee.name}`} title={`Remove ${employee.name}`}>
                 <Icon name="trash" size={16} />
@@ -129,7 +131,7 @@ export default function SimpleSetupCard({
           <strong>Repeats Monday–Friday</strong>
           <span>{ready ? 'Everything is ready to add to the calendar.' : 'Give everyone a time before adding the schedule.'}</span>
         </div>
-        <button className="button primary setup-apply-button" type="button" onClick={apply}>
+        <button className="button primary setup-apply-button" type="button" onClick={apply} data-demo-target="apply-schedule">
           <Icon name="calendar" size={16} /> {hasSchedule ? 'Update calendar' : 'Add schedule to calendar'}
         </button>
       </div>
