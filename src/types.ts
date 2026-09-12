@@ -4,6 +4,8 @@ export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6
 export interface Employee {
   id: string
   name: string
+  /** A simple setup value in 24-hour HH:mm format. Older saved data may omit it. */
+  defaultTime?: string | null
 }
 
 export interface ScheduleEntry {

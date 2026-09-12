@@ -19,8 +19,8 @@ export default function SavedTemplatesBar({ templates, activeTemplateId, onSelec
       <div className="saved-templates-copy">
         <div className="saved-templates-icon"><Icon name="calendar" size={16} /></div>
         <div>
-          <p className="eyebrow">Saved templates</p>
-          <strong>Reuse employees and shift times</strong>
+          <p className="eyebrow">Saved schedules</p>
+          <strong>Reuse employees and times</strong>
         </div>
       </div>
       <div className="saved-templates-actions">

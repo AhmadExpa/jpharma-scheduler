@@ -13,17 +13,13 @@ Open the local URL shown by Vite.
 
 ## Workflow
 
-1. Add team members in the left panel.
-2. Enter the printed schedule title.
-3. Choose any month and year.
-4. Start with the built-in **Pharmacists Schedule** sample, or set up your own employee roster and recurring shift times.
-5. Click **Save as template** in the saved templates bar to keep your own setup in this browser.
-6. For a new month, select a saved template to instantly restore the employees and recurring shift times. The app asks for confirmation before replacing the current month setup. The built-in sample cannot be updated or deleted and can be used in any month.
-7. Click any calendar date, choose **Add slot**, and select the employee and time for a one-off change.
-8. For schedules that repeat, use **Quick setup for the team** to set employee times once for selected weekdays.
-9. Use the calendar date editor for special changes, such as Friday coverage notes or days off.
-10. Use **Reset calendar** to clear all shifts while keeping your employees, title, and saved templates.
-11. Use **Print / Save PDF** to print the schedule or save it as a PDF from the browser dialog.
+1. Add your employees in the **Add your employees** card.
+2. Choose one start time for each employee.
+3. Click **Add schedule to calendar**. The schedule repeats automatically Monday–Friday in the current month and future months.
+4. Click any calendar day to change a time, mark someone off, remove someone, or add an employee for that day.
+5. Use **Print / Save PDF** to print the schedule or save it as a PDF from the browser dialog.
+
+Saved schedules, example data, custom weekday rules, printed titles, notes, and reset controls are available under **More options** for users who need them.
 
 The active workspace and saved templates are stored in the current browser with `localStorage`. There is no server, sign-in, database, or schedule history.
 

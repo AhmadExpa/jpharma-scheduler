@@ -60,15 +60,88 @@ function sampleDay(key: string, rows: SampleRow[], note = ''): DaySchedule {
   }
 }
 
+export function normalizeTimeValue(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const cleanValue = value.trim().toUpperCase().replace(/\s+/g, '')
+  const inputMatch = cleanValue.match(/^(\d{1,2}):([0-5]\d)$/)
+  if (inputMatch) {
+    const hour = Number(inputMatch[1])
+    if (hour >= 0 && hour <= 23) return `${String(hour).padStart(2, '0')}:${inputMatch[2]}`
+  }
+
+  const labelMatch = cleanValue.match(/^(\d{1,2})(?::([0-5]\d))?([AP]M)$/)
+  if (!labelMatch) return null
+  const hour = Number(labelMatch[1])
+  if (hour < 1 || hour > 12) return null
+  const minute = labelMatch[2] ?? '00'
+  const hour24 = labelMatch[3] === 'AM' ? hour % 12 : (hour % 12) + 12
+  return `${String(hour24).padStart(2, '0')}:${minute}`
+}
+
+export function formatTimeLabel(value: string): string {
+  const normalized = normalizeTimeValue(value)
+  if (!normalized) return ''
+  const [hourValue, minute] = normalized.split(':')
+  const hour24 = Number(hourValue)
+  const period = hour24 >= 12 ? 'PM' : 'AM'
+  const hour12 = hour24 % 12 || 12
+  return `${hour12}:${minute} ${period}`
+}
+
+export function timeLabelToInput(value: string): string {
+  return normalizeTimeValue(value) ?? ''
+}
+
+export function getEmployeeDefaultTime(employeeId: string, template: WeeklyTemplate): string | null {
+  for (const day of [1, 2, 3, 4, 5, 0, 6] as Weekday[]) {
+    const entry = template[day].entries.find((item) => item.employeeId === employeeId && item.kind === 'shift' && item.label)
+    const time = entry ? normalizeTimeValue(entry.label) : null
+    if (time) return time
+  }
+  return null
+}
+
+export function hydrateEmployeeTimes(employees: Employee[], template: WeeklyTemplate): Employee[] {
+  return employees.map((employee) => ({
+    ...employee,
+    defaultTime: normalizeTimeValue(employee.defaultTime) ?? getEmployeeDefaultTime(employee.id, template),
+  }))
+}
+
+export function createSimpleWeeklyTemplate(employees: Employee[], existingTemplate?: WeeklyTemplate): WeeklyTemplate {
+  const nextTemplate = existingTemplate ? cloneWeeklyTemplate(existingTemplate) : createDefaultTemplate()
+  const entries = employees
+    .filter((employee) => normalizeTimeValue(employee.defaultTime))
+    .map((employee) => ({
+      id: createId('entry'),
+      employeeId: employee.id,
+      kind: 'shift' as const,
+      label: formatTimeLabel(employee.defaultTime ?? ''),
+    }))
+
+  for (const day of [1, 2, 3, 4, 5] as Weekday[]) {
+    nextTemplate[day] = {
+      note: '',
+      entries: entries.map((entry) => ({ ...entry, id: createId('entry') })),
+    }
+  }
+  return nextTemplate
+}
+
 export function createSampleTemplate(): ScheduleTemplate {
-  const employees: Employee[] = SAMPLE_EMPLOYEE_NAMES.map((name, index) => ({ id: SAMPLE_EMPLOYEE_IDS[index], name }))
+  const commonRows = sampleCommonRows()
+  const employees: Employee[] = SAMPLE_EMPLOYEE_NAMES.map((name, index) => ({
+    id: SAMPLE_EMPLOYEE_IDS[index],
+    name,
+    defaultTime: normalizeTimeValue(commonRows.find((row) => row.employeeId === SAMPLE_EMPLOYEE_IDS[index])?.label),
+  }))
   const weeklyTemplate: WeeklyTemplate = {
     0: createEmptyDay(),
-    1: sampleDay('weekly-monday', sampleCommonRows()),
-    2: sampleDay('weekly-tuesday', sampleCommonRows()),
-    3: sampleDay('weekly-wednesday', sampleCommonRows()),
-    4: sampleDay('weekly-thursday', sampleCommonRows()),
-    5: sampleDay('weekly-friday', sampleCommonRows()),
+    1: sampleDay('weekly-monday', commonRows),
+    2: sampleDay('weekly-tuesday', commonRows),
+    3: sampleDay('weekly-wednesday', commonRows),
+    4: sampleDay('weekly-thursday', commonRows),
+    5: sampleDay('weekly-friday', commonRows),
     6: createEmptyDay(),
   }
 
@@ -116,14 +189,14 @@ export function createDefaultState(): SchedulerState {
   const today = new Date()
   return {
     version: 1,
-    scheduleTitle: 'Pharmacists Schedule',
-    employees: sample.employees.map((employee) => ({ ...employee })),
-    weeklyTemplate: cloneWeeklyTemplate(sample.weeklyTemplate),
+    scheduleTitle: 'Staff Schedule',
+    employees: [],
+    weeklyTemplate: createDefaultTemplate(),
     templates: [sample],
-    activeTemplateId: sample.id,
+    activeTemplateId: null,
     selectedYear: today.getFullYear(),
     selectedMonth: today.getMonth(),
-    currentMonthOverrides: getTemplateOverridesForMonth(sample, today.getFullYear(), today.getMonth()),
+    currentMonthOverrides: {},
   }
 }
 

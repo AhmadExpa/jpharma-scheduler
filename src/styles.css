@@ -269,6 +269,60 @@ input:focus, select:focus, textarea:focus { border-color: var(--mint-strong); bo
 .toast svg { color: #a4e1be; }
 .print-only { display: none; }
 
+/* The beginner path: one setup card followed by the calendar. */
+.simple-workspace { max-width: 1120px; display: grid; gap: 20px; }
+.simple-setup-card { padding: 24px 26px 22px; }
+.simple-setup-heading { display: flex; align-items: center; gap: 11px; }
+.setup-number { width: 31px; height: 31px; display: grid; place-items: center; flex: 0 0 auto; color: #fff; border-radius: 50%; background: var(--mint-strong); font-size: 13px; font-weight: 800; }
+.simple-setup-heading h2 { margin: 0; font-size: 18px; letter-spacing: -.03em; }
+.simple-setup-heading .eyebrow { margin-bottom: 4px; }
+.simple-setup-copy { max-width: 560px; margin: 12px 0 19px 42px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.simple-add-row { display: flex; gap: 8px; max-width: 620px; margin-left: 42px; }
+.simple-add-row input { min-width: 0; flex: 1; height: 39px; padding: 0 11px; font-size: 12px; }
+.simple-add-row .button { min-height: 39px; white-space: nowrap; }
+.simple-employee-list { display: grid; gap: 6px; max-width: 760px; margin: 20px 0 0 42px; }
+.simple-list-labels { display: grid; grid-template-columns: minmax(0, 1fr) 160px 34px; gap: 9px; padding: 0 42px 2px 10px; color: var(--faint); font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.simple-employee-row { display: grid; grid-template-columns: minmax(0, 1fr) 160px 34px; align-items: center; gap: 9px; padding: 6px 7px; border: 1px solid var(--line); border-radius: 10px; background: #fbfcfb; }
+.simple-employee-row input { width: 100%; height: 35px; padding: 0 9px; font-size: 12px; }
+.simple-employee-row .simple-time-input { font-weight: 600; }
+.simple-time-input { min-width: 0; }
+.simple-empty-state { display: flex; align-items: center; gap: 9px; max-width: 620px; margin: 18px 0 0 42px; padding: 14px; color: var(--faint); border: 1px dashed var(--line-strong); border-radius: 10px; font-size: 11px; }
+.simple-empty-state svg { color: var(--mint-deep); }
+.simple-setup-footer { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin: 21px 0 0 42px; padding-top: 17px; border-top: 1px solid var(--line); }
+.simple-setup-footer > div { display: grid; gap: 4px; }
+.simple-setup-footer strong { color: var(--ink); font-size: 11px; }
+.simple-setup-footer span { color: var(--muted); font-size: 10px; }
+.setup-apply-button { min-height: 40px; padding-right: 16px; padding-left: 16px; white-space: nowrap; }
+.advanced-options { overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,.7); }
+.advanced-options > summary { display: flex; align-items: center; gap: 8px; padding: 13px 16px; color: var(--muted); cursor: pointer; font-size: 11px; font-weight: 700; list-style: none; }
+.advanced-options > summary::-webkit-details-marker { display: none; }
+.advanced-options > summary::after { content: '+'; margin-left: auto; color: var(--faint); font-size: 16px; font-weight: 400; }
+.advanced-options[open] > summary::after { content: '–'; }
+.advanced-options > summary:hover { color: var(--ink); background: #fbfdfb; }
+.advanced-options-body { display: grid; gap: 16px; padding: 0 16px 18px; border-top: 1px solid var(--line); }
+.advanced-title-row { display: flex; align-items: end; justify-content: space-between; gap: 20px; padding-top: 17px; }
+.advanced-title-row h2 { margin: 0 0 4px; font-size: 15px; }
+.advanced-title-row p:not(.eyebrow) { margin: 0; color: var(--muted); font-size: 10px; }
+.advanced-title-row .workspace-title-editor { margin-top: 0; }
+.advanced-tools-grid { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: start; }
+.advanced-actions { display: flex; align-items: end; gap: 4px; }
+.advanced-reset-button { align-self: end; }
+.calendar-empty-message { display: flex; align-items: center; gap: 9px; margin: 0 24px 18px; padding: 12px 14px; color: var(--muted); border: 1px dashed var(--line-strong); border-radius: 10px; background: #fbfdfb; font-size: 11px; }
+.calendar-empty-message svg { color: var(--mint-deep); }
+.simple-day-modal { width: min(650px, 100%); }
+.simple-day-list { display: grid; gap: 7px; }
+.simple-day-row { display: grid; grid-template-columns: minmax(0, 1fr) 140px auto 29px; align-items: center; gap: 9px; padding: 8px 9px; border: 1px solid var(--line); border-radius: 10px; background: #fbfcfb; }
+.simple-day-row strong { min-width: 0; overflow: hidden; color: var(--ink); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.simple-day-row .simple-time-input { width: 100%; height: 34px; padding: 0 8px; font-size: 11px; }
+.off-toggle { display: flex; align-items: center; gap: 5px; color: var(--muted); font-size: 10px; white-space: nowrap; }
+.off-toggle input { accent-color: var(--coral-deep); }
+.off-label { color: var(--coral-deep); font-size: 10px; font-weight: 700; }
+.simple-day-add select { width: 100%; height: 35px; padding: 0 9px; color: var(--muted); font-size: 10px; }
+.day-more-details { margin-top: 16px; }
+.day-more-details summary { color: var(--muted); cursor: pointer; font-size: 10px; font-weight: 700; }
+.day-more-details .note-input { margin-top: 8px; }
+.modal-secondary-actions { display: flex; align-items: center; gap: 4px; }
+
 @media (max-width: 1180px) {
   .app-header, .app-main { padding-right: 25px; padding-left: 25px; }
   .workspace-layout { grid-template-columns: 300px minmax(0, 1fr); gap: 17px; }
@@ -296,6 +350,20 @@ input:focus, select:focus, textarea:focus { border-color: var(--mint-strong); bo
   .page-intro { margin-bottom: 22px; }
   .page-intro h1 { font-size: 28px; }
   .intro-copy { font-size: 12px; }
+  .simple-setup-card { padding: 19px 15px 17px; }
+  .simple-setup-copy, .simple-add-row, .simple-employee-list, .simple-empty-state, .simple-setup-footer { margin-left: 0; }
+  .simple-add-row { align-items: stretch; flex-direction: column; }
+  .simple-add-row .button { width: 100%; }
+  .simple-list-labels { grid-template-columns: minmax(0, 1fr) 116px 29px; gap: 6px; padding-right: 35px; font-size: 8px; }
+  .simple-employee-row { grid-template-columns: minmax(0, 1fr) 116px 29px; gap: 6px; padding: 5px; }
+  .simple-employee-row input { padding-right: 6px; padding-left: 6px; font-size: 10px; }
+  .simple-setup-footer { align-items: stretch; flex-direction: column; gap: 12px; }
+  .setup-apply-button { width: 100%; }
+  .advanced-title-row { align-items: start; flex-direction: column; }
+  .advanced-title-row .workspace-title-editor { align-items: start; flex-direction: column; gap: 5px; }
+  .advanced-tools-grid { grid-template-columns: 1fr; }
+  .advanced-actions { align-items: start; flex-wrap: wrap; }
+  .calendar-empty-message { margin-right: 14px; margin-left: 14px; }
   .control-rail { grid-template-columns: 1fr; }
   .month-toolbar { align-items: start; flex-direction: column; gap: 13px; }
   .saved-templates-bar { align-items: start; flex-direction: column; gap: 10px; }
@@ -350,6 +418,12 @@ input:focus, select:focus, textarea:focus { border-color: var(--mint-strong); bo
   .modal-entry > .kind-select { grid-area: kind; max-width: 92px; }
   .modal-entry > input, .modal-entry > .time-picker { grid-area: time; }
   .modal-entry > .small-action { grid-area: remove; justify-self: end; }
+  .simple-day-row { grid-template-columns: minmax(0, 1fr) 29px; gap: 6px; }
+  .simple-day-row .simple-time-input { grid-column: 1; }
+  .simple-day-row .off-toggle { grid-column: 1; }
+  .simple-day-row .small-action { grid-column: 2; grid-row: 1 / span 2; }
+  .simple-day-row .off-label { grid-column: 1; }
+  .modal-secondary-actions { align-self: start; flex-wrap: wrap; }
   .quick-setup-modal .modal-body { padding-top: 17px; }
   .quick-team-row { align-items: start; flex-direction: column; gap: 7px; }
   .quick-team-row-actions { width: 100%; }
@@ -381,7 +455,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--mint-strong); bo
   .modal-backdrop, .toast, input, select, textarea, button { display: none !important; }
   .print-only { display: block; }
   .app-main { max-width: none; padding: 0; }
-  .workspace-layout, .schedule-area { display: block; }
+  .workspace-layout, .simple-workspace, .schedule-area { display: block; }
+  .simple-workspace { max-width: none; }
   .calendar-card { width: 100%; overflow: visible; border: 0; border-radius: 0; box-shadow: none; break-inside: avoid; page-break-inside: avoid; }
   .print-heading { display: flex; align-items: flex-start; justify-content: space-between; height: .62in; margin: 0 0 3px; padding-top: .02in; }
   .print-kicker { margin: 0 0 4px; color: #4d6758; font-size: 9pt; font-weight: 700; letter-spacing: .11em; line-height: 1.1; text-transform: uppercase; }

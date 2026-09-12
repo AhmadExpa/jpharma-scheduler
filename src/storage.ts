@@ -1,4 +1,4 @@
-import { cloneWeeklyTemplate, createDefaultState, createSampleTemplate, getTemplateOverridesForMonth, SAMPLE_TEMPLATE_ID } from './dateUtils'
+import { cloneWeeklyTemplate, createDefaultState, createSampleTemplate, getTemplateOverridesForMonth, hydrateEmployeeTimes, normalizeTimeValue, SAMPLE_TEMPLATE_ID } from './dateUtils'
 import type { DaySchedule, Employee, ScheduleEntry, ScheduleTemplate, SchedulerState, Weekday, WeeklyTemplate } from './types'
 
 const STORAGE_KEY = 'jpharma-scheduler:v1'
@@ -36,7 +36,11 @@ function cleanEmployees(value: unknown): Employee[] {
     ? value
         .filter(isRecord)
         .filter((employee) => typeof employee.id === 'string' && typeof employee.name === 'string')
-        .map((employee) => ({ id: employee.id as string, name: (employee.name as string).trim() }))
+        .map((employee) => ({
+          id: employee.id as string,
+          name: (employee.name as string).trim(),
+          defaultTime: normalizeTimeValue(employee.defaultTime),
+        }))
         .filter((employee) => employee.name.length > 0)
     : []
 }
@@ -54,12 +58,13 @@ function cleanTemplateRecord(value: unknown): ScheduleTemplate | null {
   const name = value.name.trim()
   if (!name) return null
   const monthOverrides = cleanOverrides(value.monthOverrides)
+  const weeklyTemplate = cleanTemplate(value.weeklyTemplate)
   return {
     id: value.id,
     name,
     builtIn: value.builtIn === true,
-    employees: cleanEmployees(value.employees),
-    weeklyTemplate: cleanTemplate(value.weeklyTemplate),
+    employees: hydrateEmployeeTimes(cleanEmployees(value.employees), weeklyTemplate),
+    weeklyTemplate,
     monthDayOverrides: cleanOverrides(value.monthDayOverrides),
     monthOverrides,
   }
@@ -72,7 +77,7 @@ function cleanState(value: unknown): SchedulerState {
   const storedActiveTemplateId = typeof value.activeTemplateId === 'string' ? value.activeTemplateId : null
   const refreshBuiltInSample = storedActiveTemplateId?.startsWith('builtin-pharmacists-schedule-') === true
     && storedActiveTemplateId !== SAMPLE_TEMPLATE_ID
-  const employees = cleanEmployees(value.employees)
+  const storedEmployees = cleanEmployees(value.employees)
   const savedTemplates = Array.isArray(value.templates)
     ? value.templates.map(cleanTemplateRecord).filter((template): template is ScheduleTemplate => template !== null)
     : []
@@ -96,6 +101,10 @@ function cleanState(value: unknown): SchedulerState {
   const workspaceTemplate = refreshBuiltInSample
     ? cloneWeeklyTemplate(sampleTemplate.weeklyTemplate)
     : cleanTemplate(value.weeklyTemplate)
+  const employees = hydrateEmployeeTimes(
+    refreshBuiltInSample ? sampleTemplate.employees.map((employee) => ({ ...employee })) : storedEmployees,
+    workspaceTemplate,
+  )
   const workspaceOverrides = refreshBuiltInSample
     ? getTemplateOverridesForMonth(sampleTemplate, workspaceYear, workspaceMonth)
     : overrides
@@ -105,7 +114,7 @@ function cleanState(value: unknown): SchedulerState {
     scheduleTitle: typeof value.scheduleTitle === 'string' && value.scheduleTitle.trim().length > 0
       ? value.scheduleTitle.trim()
       : fallback.scheduleTitle,
-    employees: refreshBuiltInSample ? sampleTemplate.employees.map((employee) => ({ ...employee })) : employees,
+    employees,
     weeklyTemplate: workspaceTemplate,
     templates,
     activeTemplateId: refreshBuiltInSample

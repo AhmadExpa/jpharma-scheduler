@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
-import EmployeeManager from './components/EmployeeManager'
+import { useEffect, useState } from 'react'
 import Icon from './components/Icon'
 import ScheduleCalendar from './components/ScheduleCalendar'
 import DayEditorModal from './components/DayEditorModal'
+import SimpleDayEditorModal from './components/SimpleDayEditorModal'
+import SimpleSetupCard from './components/SimpleSetupCard'
 import TemplateEditor from './components/TemplateEditor'
 import SavedTemplatesBar from './components/SavedTemplatesBar'
 import ConfirmModal from './components/ConfirmModal'
@@ -11,12 +12,12 @@ import {
   cloneWeeklyTemplate,
   createId,
   createDefaultTemplate,
+  createSimpleWeeklyTemplate,
   dateKey,
   formatMonthYear,
   getDaySchedule,
   getTemplateOverridesForMonth as getMonthTemplateOverrides,
   MONTHS,
-  WEEKDAYS,
 } from './dateUtils'
 import { loadState, saveState } from './storage'
 import type { DaySchedule, Employee, SchedulerState, ScheduleTemplate, Weekday } from './types'
@@ -37,6 +38,7 @@ function App() {
   const [toast, setToast] = useState('')
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null)
   const [templateNameModalOpen, setTemplateNameModalOpen] = useState(false)
+  const [advancedDayEditorOpen, setAdvancedDayEditorOpen] = useState(false)
 
   useEffect(() => saveState(state), [state])
 
@@ -46,15 +48,11 @@ function App() {
     return () => window.clearTimeout(timeout)
   }, [toast])
 
-  const overrideCount = Object.keys(state.currentMonthOverrides).length
   const selectedDay = selectedDate
     ? getDaySchedule(selectedDate, state.weeklyTemplate, state.currentMonthOverrides)
     : null
 
-  const totalTemplateEntries = useMemo(
-    () => WEEKDAYS.reduce((total, day) => total + state.weeklyTemplate[day.value].entries.length, 0),
-    [state.weeklyTemplate],
-  )
+  const hasSchedule = [0, 1, 2, 3, 4, 5, 6].some((day) => state.weeklyTemplate[day as Weekday].entries.length > 0)
 
   function updateState(updater: (current: SchedulerState) => SchedulerState) {
     setState((current) => updater(current))
@@ -69,7 +67,7 @@ function App() {
     if (!cleanName || state.employees.some((employee) => employee.name.toLowerCase() === cleanName.toLowerCase())) return false
     updateState((current) => ({
       ...current,
-      employees: [...current.employees, { id: `employee-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, name: cleanName }],
+      employees: [...current.employees, { id: `employee-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, name: cleanName, defaultTime: null }],
     }))
     showToast(`${cleanName} added to the team`)
     return true
@@ -86,13 +84,20 @@ function App() {
     return true
   }
 
+  function updateEmployeeTime(id: string, time: string) {
+    updateState((current) => ({
+      ...current,
+      employees: current.employees.map((employee) => employee.id === id ? { ...employee, defaultTime: time || null } : employee),
+    }))
+  }
+
   function deleteEmployee(id: string) {
     const employee = state.employees.find((item) => item.id === id)
     if (!employee) return
     setConfirmAction({
       eyebrow: 'Team member',
       title: `Remove ${employee.name}?`,
-      message: 'Their rows will also be removed from the current recurring pattern and date-specific changes.',
+      message: 'Their schedule will be removed from the calendar and any saved one-day changes.',
       confirmLabel: 'Remove employee',
       danger: true,
       icon: 'users',
@@ -123,24 +128,29 @@ function App() {
     showToast(`${employee.name} removed`)
   }
 
-  function moveEmployee(id: string, direction: -1 | 1) {
-    updateState((current) => {
-      const index = current.employees.findIndex((employee) => employee.id === id)
-      const nextIndex = index + direction
-      if (index < 0 || nextIndex < 0 || nextIndex >= current.employees.length) return current
-      const employees = [...current.employees]
-      const [moved] = employees.splice(index, 1)
-      employees.splice(nextIndex, 0, moved)
-      return { ...current, employees }
-    })
-  }
-
   function updateTemplateDays(updates: Partial<Record<Weekday, DaySchedule>>) {
     updateState((current) => ({
       ...current,
       weeklyTemplate: { ...current.weeklyTemplate, ...updates },
     }))
-    showToast('Recurring schedule created — it now appears in every month')
+    showToast('Weekly schedule updated')
+  }
+
+  function applySimpleSchedule() {
+    if (state.employees.length === 0 || state.employees.some((employee) => !employee.defaultTime)) {
+      showToast(state.employees.length === 0 ? 'Add an employee first' : 'Add a time for every employee')
+      return
+    }
+
+    updateState((current) => ({
+      ...current,
+      weeklyTemplate: createSimpleWeeklyTemplate(current.employees, current.weeklyTemplate),
+      activeTemplateId: null,
+    }))
+    setSelectedDate(null)
+    setAdvancedDayEditorOpen(false)
+    showToast(`Schedule added to ${formatMonthYear(state.selectedYear, state.selectedMonth)}`)
+    window.requestAnimationFrame(() => document.getElementById('calendar-title')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
   }
 
   function openTemplateNameModal() {
@@ -218,6 +228,7 @@ function App() {
       currentMonthOverrides: monthOverrides,
     }))
     setSelectedDate(null)
+    setAdvancedDayEditorOpen(false)
     showToast(`Template “${template.name}” loaded`)
   }
 
@@ -253,7 +264,7 @@ function App() {
     return activeTemplate ? getMonthTemplateOverrides(activeTemplate, year, month) : {}
   }
 
-  function changeMonth(year: number, month: number, message = 'Change month? Date-specific edits for the current month will be cleared.') {
+  function changeMonth(year: number, month: number, message = 'This month has one-day changes. Change the month anyway?') {
     if (year === state.selectedYear && month === state.selectedMonth) return
     if (hasPendingOverrides()) {
       setConfirmAction({
@@ -301,6 +312,32 @@ function App() {
     })
   }
 
+  function startFresh() {
+    setConfirmAction({
+      eyebrow: 'Start fresh',
+      title: 'Start a blank schedule?',
+      message: 'This removes the current employees and calendar changes. Saved schedules will stay available under More options.',
+      confirmLabel: 'Start fresh',
+      danger: true,
+      icon: 'refresh',
+      onConfirm: startFreshWorkspace,
+    })
+  }
+
+  function startFreshWorkspace() {
+    updateState((current) => ({
+      ...current,
+      scheduleTitle: 'Staff Schedule',
+      employees: [],
+      weeklyTemplate: createDefaultTemplate(),
+      currentMonthOverrides: {},
+      activeTemplateId: null,
+    }))
+    setSelectedDate(null)
+    setAdvancedDayEditorOpen(false)
+    showToast('Blank schedule ready')
+  }
+
   function resetCurrentCalendar() {
     updateState((current) => ({
       ...current,
@@ -319,7 +356,8 @@ function App() {
       currentMonthOverrides: { ...current.currentMonthOverrides, [dateKey(selectedDate)]: day },
     }))
     setSelectedDate(null)
-    showToast('Date-specific change saved')
+    setAdvancedDayEditorOpen(false)
+    showToast('Day saved')
   }
 
   function resetDateOverride() {
@@ -331,7 +369,8 @@ function App() {
       return { ...current, currentMonthOverrides }
     })
     setSelectedDate(null)
-    showToast('Date reset to the weekly pattern')
+    setAdvancedDayEditorOpen(false)
+    showToast('Day reset to the weekly schedule')
   }
 
   function acceptConfirmAction() {
@@ -355,47 +394,26 @@ function App() {
       <main className="app-main">
         <div className="page-intro no-print">
           <div>
-            <p className="eyebrow">Schedule workspace</p>
-            <h1>Build your monthly coverage plan.</h1>
-            <p className="intro-copy">Click any calendar date to add or edit employee slots. Use the recurring pattern only when the same schedule repeats.</p>
-            <label className="workspace-title-editor" htmlFor="schedule-title">
-              <span>Printed schedule title</span>
-              <input
-                id="schedule-title"
-                value={state.scheduleTitle}
-                onChange={(event) => updateState((current) => ({ ...current, scheduleTitle: event.target.value }))}
-                placeholder="e.g. Pharmacists Schedule"
-                maxLength={70}
-              />
-            </label>
-          </div>
-          <div className="setup-progress" aria-label="Setup progress">
-            <div className={`progress-step ${state.employees.length > 0 ? 'complete' : 'active'}`}><span>{state.employees.length > 0 ? '✓' : '1'}</span> Team</div>
-            <div className="progress-line" />
-            <div className={`progress-step ${totalTemplateEntries > 0 ? 'complete' : state.employees.length > 0 ? 'active' : ''}`}><span>{totalTemplateEntries > 0 ? '✓' : '2'}</span> Pattern</div>
-            <div className="progress-line" />
-            <div className="progress-step active"><span>3</span> Calendar</div>
+            <p className="eyebrow">Monthly staff schedule</p>
+            <h1>Make your schedule in minutes.</h1>
+            <p className="intro-copy">Add your employees and their start times. We will place them on the calendar automatically.</p>
           </div>
         </div>
 
-        <div className="workspace-layout">
-          <aside className="control-rail no-print">
-            <EmployeeManager employees={state.employees} onAdd={addEmployee} onRename={renameEmployee} onDelete={deleteEmployee} onMove={moveEmployee} />
-            <TemplateEditor employees={state.employees} template={state.weeklyTemplate} onUpdateDays={updateTemplateDays} />
-          </aside>
-
+        <div className="simple-workspace">
+          <SimpleSetupCard
+            employees={state.employees}
+            hasSchedule={hasSchedule}
+            onAdd={addEmployee}
+            onRename={renameEmployee}
+            onTimeChange={updateEmployeeTime}
+            onDelete={deleteEmployee}
+            onApply={applySimpleSchedule}
+          />
           <section className="schedule-area">
-            <SavedTemplatesBar
-              templates={state.templates}
-              activeTemplateId={state.activeTemplateId}
-              onSelect={loadTemplate}
-              onSave={openTemplateNameModal}
-              onUpdate={updateActiveTemplate}
-              onDelete={deleteActiveTemplate}
-            />
             <div className="month-toolbar no-print">
               <div className="month-title-group">
-                <p className="eyebrow">Your schedule</p>
+                <p className="eyebrow">Your calendar</p>
                 <h2>{formatMonthYear(state.selectedYear, state.selectedMonth)}</h2>
               </div>
               <div className="month-actions">
@@ -418,7 +436,6 @@ function App() {
                   <button className="icon-button" type="button" onClick={nextMonth} aria-label="Next month" title="Next month"><Icon name="arrow-right" /></button>
                 </div>
                 <button className="button secondary" type="button" onClick={goToCurrentMonth}>Today</button>
-                <button className="button ghost danger-text" type="button" onClick={resetCalendar} title="Clear all shifts from this calendar"><Icon name="refresh" size={15} /> Reset calendar</button>
               </div>
             </div>
 
@@ -429,27 +446,78 @@ function App() {
               employees={state.employees}
               template={state.weeklyTemplate}
               overrides={state.currentMonthOverrides}
-              onEditDate={setSelectedDate}
+              onEditDate={(date) => { setSelectedDate(date); setAdvancedDayEditorOpen(false) }}
             />
 
             <div className="schedule-tip no-print">
               <div className="tip-icon"><Icon name="edit" size={16} /></div>
-              <div><strong>Fastest workflow.</strong><span>Click any calendar date to add or edit its employees, times, or note.</span></div>
+              <div><strong>Need a change?</strong><span>Click any day to change a time, mark someone off, or add an employee.</span></div>
             </div>
           </section>
+
+          <details className="advanced-options no-print">
+            <summary><Icon name="settings" size={16} /> More options</summary>
+            <div className="advanced-options-body">
+              <div className="advanced-title-row">
+                <div>
+                  <p className="eyebrow">Optional</p>
+                  <h2>Extra tools</h2>
+                  <p>These tools are only needed for saved schedules or more complicated setups.</p>
+                </div>
+                <label className="workspace-title-editor" htmlFor="schedule-title">
+                  <span>Printed schedule title</span>
+                  <input
+                    id="schedule-title"
+                    value={state.scheduleTitle}
+                    onChange={(event) => updateState((current) => ({ ...current, scheduleTitle: event.target.value }))}
+                    placeholder="Staff Schedule"
+                    maxLength={70}
+                  />
+                </label>
+              </div>
+              <SavedTemplatesBar
+                templates={state.templates}
+                activeTemplateId={state.activeTemplateId}
+                onSelect={loadTemplate}
+                onSave={openTemplateNameModal}
+                onUpdate={updateActiveTemplate}
+                onDelete={deleteActiveTemplate}
+              />
+              <div className="advanced-tools-grid">
+                <TemplateEditor employees={state.employees} template={state.weeklyTemplate} onUpdateDays={updateTemplateDays} />
+                <div className="advanced-actions">
+                  <button className="button ghost" type="button" onClick={startFresh}><Icon name="refresh" size={15} /> Start fresh</button>
+                  <button className="button ghost danger-text advanced-reset-button" type="button" onClick={resetCalendar} title="Clear all shifts from this calendar"><Icon name="refresh" size={15} /> Reset calendar</button>
+                </div>
+              </div>
+            </div>
+          </details>
         </div>
       </main>
 
       {selectedDate && selectedDay && (
-        <DayEditorModal
-          date={selectedDate}
-          initialDay={selectedDay.day}
-          isOverride={selectedDay.isOverride}
-          employees={state.employees}
-          onClose={() => setSelectedDate(null)}
-          onSave={saveDateOverride}
-          onReset={resetDateOverride}
-        />
+        advancedDayEditorOpen ? (
+          <DayEditorModal
+            date={selectedDate}
+            initialDay={selectedDay.day}
+            isOverride={selectedDay.isOverride}
+            employees={state.employees}
+            onClose={() => { setSelectedDate(null); setAdvancedDayEditorOpen(false) }}
+            onSave={saveDateOverride}
+            onReset={resetDateOverride}
+          />
+        ) : (
+          <SimpleDayEditorModal
+            date={selectedDate}
+            initialDay={selectedDay.day}
+            isOverride={selectedDay.isOverride}
+            employees={state.employees}
+            onClose={() => setSelectedDate(null)}
+            onSave={saveDateOverride}
+            onReset={resetDateOverride}
+            onOpenAdvanced={() => setAdvancedDayEditorOpen(true)}
+          />
+        )
       )}
 
       {templateNameModalOpen && (
