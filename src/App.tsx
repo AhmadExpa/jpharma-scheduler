@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Icon from './components/Icon'
+import InfoTag from './components/InfoTag'
 import ScheduleCalendar from './components/ScheduleCalendar'
 import DayEditorModal from './components/DayEditorModal'
 import SimpleDayEditorModal from './components/SimpleDayEditorModal'
@@ -386,7 +387,7 @@ function App() {
           <img className="brand-logo" src="/logo.png" alt="J~pharma Laboratories Limited" />
         </div>
         <div className="header-actions">
-          <span className="save-status"><span className="save-dot" /> Saved in this browser</span>
+          <InfoTag className="header-info-tag"><span className="save-dot" /> Saved automatically here</InfoTag>
           <button className="button primary" type="button" onClick={() => window.print()}><Icon name="printer" size={16} /> Print / Save PDF</button>
         </div>
       </header>
@@ -449,10 +450,6 @@ function App() {
               onEditDate={(date) => { setSelectedDate(date); setAdvancedDayEditorOpen(false) }}
             />
 
-            <div className="schedule-tip no-print">
-              <div className="tip-icon"><Icon name="edit" size={16} /></div>
-              <div><strong>Need a change?</strong><span>Click any day to change a time, mark someone off, or add an employee.</span></div>
-            </div>
           </section>
 
           <details className="advanced-options no-print">

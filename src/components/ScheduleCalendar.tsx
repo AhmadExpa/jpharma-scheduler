@@ -1,6 +1,7 @@
 import { dateKey, formatMonthYear, getCalendarCells, getDaySchedule, WEEKDAYS } from '../dateUtils'
 import type { Employee, DaySchedule, Weekday, WeeklyTemplate } from '../types'
 import Icon from './Icon'
+import InfoTag from './InfoTag'
 
 interface ScheduleCalendarProps {
   year: number
@@ -28,7 +29,7 @@ export default function ScheduleCalendar({ year, month, scheduleTitle, employees
         <div>
           <p className="eyebrow">Your calendar</p>
           <h2 id="calendar-title">{formatMonthYear(year, month)}</h2>
-          <p className="calendar-action-copy">Repeats Monday–Friday. Click any day to make a change.</p>
+          <InfoTag>Repeats Monday–Friday · click a day to change it</InfoTag>
         </div>
         <div className="calendar-status">
           <span className="status-dot" />

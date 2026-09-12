@@ -9,6 +9,7 @@ export type IconName =
   | 'chevron-up'
   | 'edit'
   | 'grip'
+  | 'info'
   | 'plus'
   | 'printer'
   | 'refresh'
@@ -45,6 +46,7 @@ export default function Icon({ name, size = 18, ...props }: IconProps) {
     case 'chevron-up': return <svg {...common}><path d="m18 15-6-6-6 6" /></svg>
     case 'edit': return <svg {...common}><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" /></svg>
     case 'grip': return <svg {...common}><circle cx="9" cy="6" r="1" fill="currentColor" stroke="none" /><circle cx="15" cy="6" r="1" fill="currentColor" stroke="none" /><circle cx="9" cy="12" r="1" fill="currentColor" stroke="none" /><circle cx="15" cy="12" r="1" fill="currentColor" stroke="none" /><circle cx="9" cy="18" r="1" fill="currentColor" stroke="none" /><circle cx="15" cy="18" r="1" fill="currentColor" stroke="none" /></svg>
+    case 'info': return <svg {...common}><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></svg>
     case 'plus': return <svg {...common}><path d="M12 5v14M5 12h14" /></svg>
     case 'printer': return <svg {...common}><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><path d="M6 14h12v7H6z" /><path d="M18 12h.01" /></svg>
     case 'refresh': return <svg {...common}><path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 5v4h4M4 13a8.1 8.1 0 0 0 15.5 2M20 19v-4h-4" /></svg>

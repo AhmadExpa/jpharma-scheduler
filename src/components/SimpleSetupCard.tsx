@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import type { Employee } from '../types'
 import Icon from './Icon'
+import InfoTag from './InfoTag'
 
 interface SimpleSetupCardProps {
   employees: Employee[]
@@ -77,6 +78,7 @@ export default function SimpleSetupCard({
         <span className="count-pill">{employees.length}</span>
       </div>
       <p className="simple-setup-copy">Add each person, choose their start time, then put the schedule on the calendar.</p>
+      <InfoTag className="simple-setup-info">One time per person · repeats Monday–Friday</InfoTag>
 
       <form className="simple-add-row" onSubmit={submit}>
         <input
