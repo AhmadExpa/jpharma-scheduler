@@ -274,7 +274,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--mint-strong); bo
 .print-only { display: none; }
 
 /* The beginner path: one setup card followed by the calendar. */
-.simple-workspace { max-width: 1120px; display: grid; gap: 14px; }
+.simple-workspace { width: 100%; max-width: none; display: grid; grid-template-columns: minmax(300px, 340px) minmax(0, 1fr); align-items: start; gap: 14px; }
 .simple-setup-card { padding: 17px 20px 16px; }
 .simple-setup-heading { display: flex; align-items: center; gap: 11px; }
 .setup-number { width: 31px; height: 31px; display: grid; place-items: center; flex: 0 0 auto; color: #fff; border-radius: 50%; background: var(--mint-strong); font-size: 13px; font-weight: 800; }
@@ -286,19 +286,19 @@ input:focus, select:focus, textarea:focus { border-color: var(--mint-strong); bo
 .simple-add-row input { min-width: 0; flex: 1; height: 35px; padding: 0 10px; font-size: 11px; }
 .simple-add-row .button { min-height: 35px; white-space: nowrap; }
 .simple-employee-list { display: grid; gap: 5px; max-width: 760px; margin: 13px 0 0 38px; }
-.simple-list-labels { display: grid; grid-template-columns: minmax(0, 1fr) 160px 34px; gap: 9px; padding: 0 42px 2px 10px; color: var(--faint); font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-.simple-employee-row { display: grid; grid-template-columns: minmax(0, 1fr) 150px 30px; align-items: center; gap: 7px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 8px; background: #fbfcfb; }
+.simple-list-labels { display: grid; grid-template-columns: minmax(0, 1fr) 120px 30px; gap: 7px; padding: 0 37px 2px 8px; color: var(--faint); font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.simple-employee-row { display: grid; grid-template-columns: minmax(0, 1fr) 120px 30px; align-items: center; gap: 7px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 8px; background: #fbfcfb; }
 .simple-employee-row input { width: 100%; height: 31px; padding: 0 8px; font-size: 11px; }
 .simple-employee-row .simple-time-input { font-weight: 600; }
 .simple-time-input { min-width: 0; }
 .simple-empty-state { display: flex; align-items: center; gap: 9px; max-width: 620px; margin: 13px 0 0 38px; padding: 10px; color: var(--faint); border: 1px dashed var(--line-strong); border-radius: 8px; font-size: 10px; }
 .simple-empty-state svg { color: var(--mint-deep); }
-.simple-setup-footer { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin: 14px 0 0 38px; padding-top: 12px; border-top: 1px solid var(--line); }
+.simple-setup-footer { display: flex; align-items: stretch; flex-direction: column; justify-content: space-between; gap: 10px; margin: 14px 0 0 38px; padding-top: 12px; border-top: 1px solid var(--line); }
 .simple-setup-footer > div { display: grid; gap: 4px; }
 .simple-setup-footer strong { color: var(--ink); font-size: 11px; }
 .simple-setup-footer span { color: var(--muted); font-size: 10px; }
 .setup-apply-button { min-height: 36px; padding-right: 13px; padding-left: 13px; white-space: nowrap; }
-.advanced-options { overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,.7); }
+.advanced-options { grid-column: 1 / -1; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,.7); }
 .advanced-options > summary { display: flex; align-items: center; gap: 8px; padding: 13px 16px; color: var(--muted); cursor: pointer; font-size: 11px; font-weight: 700; list-style: none; }
 .advanced-options > summary::-webkit-details-marker { display: none; }
 .advanced-options > summary::after { content: '+'; margin-left: auto; color: var(--faint); font-size: 16px; font-weight: 400; }
@@ -339,6 +339,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--mint-strong); bo
   .page-intro { align-items: start; flex-direction: column; }
   .setup-progress { align-self: stretch; justify-content: center; }
   .workspace-layout { display: flex; flex-direction: column; }
+  .simple-workspace { grid-template-columns: 1fr; }
+  .advanced-options { grid-column: auto; }
   .schedule-area { order: 1; width: 100%; }
   .control-rail { order: 2; width: 100%; }
   .control-rail { grid-template-columns: minmax(270px, .8fr) minmax(360px, 1.2fr); align-items: start; }
