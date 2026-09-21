@@ -26,3 +26,7 @@ The active workspace and saved templates are stored in the current browser with 
 ## Deploy to Vercel
 
 Import this project into Vercel. Vercel will detect Vite automatically; use `npm run build` as the build command and `dist` as the output directory if prompted.
+
+### Temporary suspension screen
+
+Set the Vercel Production environment variable `VITE_SITE_SUSPENDED` to `true` and redeploy to show the full-site suspension screen. Set it to `false` (or remove it) and redeploy to show the scheduler again. Because this is a Vite build variable, a new deployment is required after changing it.

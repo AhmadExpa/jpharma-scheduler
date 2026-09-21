@@ -10,6 +10,7 @@ import TemplateEditor from './components/TemplateEditor'
 import SavedTemplatesBar from './components/SavedTemplatesBar'
 import ConfirmModal from './components/ConfirmModal'
 import TextInputModal from './components/TextInputModal'
+import SiteSuspensionOverlay from './components/SiteSuspensionOverlay'
 import {
   cloneWeeklyTemplate,
   createId,
@@ -384,6 +385,7 @@ function App() {
 
   return (
     <div className="app-shell">
+      {import.meta.env.VITE_SITE_SUSPENDED === 'true' && <SiteSuspensionOverlay />}
       <header className="app-header no-print">
         <div className="brand-lockup">
           <img className="brand-logo" src="/logo.png" alt="J~pharma Laboratories Limited" />
