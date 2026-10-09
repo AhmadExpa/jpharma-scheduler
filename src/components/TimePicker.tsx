@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { formatTimeLabel } from '../dateUtils'
 
 interface TimeParts {
   hour: string
@@ -10,7 +11,7 @@ const EMPTY_TIME: TimeParts = { hour: '', minute: '', period: '' }
 const MINUTES = Array.from({ length: 12 }, (_, index) => String(index * 5).padStart(2, '0'))
 
 export function parseTimeLabel(value: string): TimeParts | null {
-  const match = value.trim().toUpperCase().replace(/\s+/g, '').match(/^(\d{1,2})(?::([0-5]\d))?([AP]M)$/)
+  const match = formatTimeLabel(value).replace(/\s+/g, '').match(/^(\d{1,2}):([0-5]\d)([AP]M)$/)
   if (!match) return null
 
   const hour = Number(match[1])

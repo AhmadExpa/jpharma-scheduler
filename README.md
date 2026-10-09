@@ -2,6 +2,8 @@
 
 A browser-based monthly staff scheduling portal for creating recurring weekly coverage patterns and printing a clean monthly calendar.
 
+The JPharma Pharmacists Schedule is loaded by default. It repeats Monday–Friday, and the calendar opens on the current month. The October 2026 schedule carries those weekly times forward with Jonathan marked OFF and Elile's unconfirmed time shown as ? on October 30.
+
 ## Run locally
 
 ```bash
@@ -16,12 +18,12 @@ Open the local URL shown by Vite.
 1. Add your employees in the **Add your employees** card.
 2. Choose one start time for each employee.
 3. Click **Add schedule to calendar**. The schedule repeats automatically Monday–Friday in the current month and future months.
-4. Click any calendar day to change a time, mark someone off, remove someone, or add an employee for that day.
+4. Click any calendar day to set a time, mark someone OFF, mark their time as ? when it is not confirmed, or add an employee for that day.
 5. Use **Print / Save PDF** to print the schedule or save it as a PDF from the browser dialog.
 
 Saved schedules, example data, custom weekday rules, printed titles, notes, and reset controls are available under **More options** for users who need them.
 
-The active workspace and saved templates are stored in the current browser with `localStorage`. There is no server, sign-in, database, or schedule history.
+The active workspace, day-specific changes across months, and saved templates are stored in the current browser with `localStorage`. There is no server, sign-in, database, or shared schedule history. A different browser or device cannot see the first browser’s edits unless they are entered there as well.
 
 ## Deploy to Vercel
 

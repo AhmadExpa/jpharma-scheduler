@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { createId, formatDateLong, getWeekdayName } from '../dateUtils'
+import { createId, formatDateLong, formatTimeLabel, getWeekdayName, normalizeTimeValue } from '../dateUtils'
 import type { DaySchedule, Employee, ScheduleEntry } from '../types'
 import Icon from './Icon'
 import TimePicker from './TimePicker'
@@ -37,20 +37,22 @@ export default function DayEditorModal({ date, initialDay, isOverride, employees
 
   function addEntry() {
     if (employees.length === 0) return
+    const time = formatTimeLabel(employees[0].defaultTime ?? '')
     setDraft((current) => ({
       ...current,
-      entries: [...current.entries, { id: createId('entry'), employeeId: employees[0].id, kind: 'shift', label: '' }],
+      entries: [...current.entries, { id: createId('entry'), employeeId: employees[0].id, kind: time ? 'shift' : 'unknown', label: time || '?' }],
     }))
   }
 
   function save() {
-    if (draft.entries.some((entry) => !entry.employeeId || !entry.label.trim())) {
-      setError('Complete or remove every schedule row before saving.')
+    if (draft.entries.some((entry) => !entry.employeeId || (entry.kind === 'shift' && !normalizeTimeValue(entry.label))
+      || (entry.kind === 'off' && !entry.label.trim()))) {
+      setError('Choose a time, OFF, or ? for every schedule row.')
       return
     }
     onSave({
       note: draft.note.trim(),
-      entries: draft.entries.map((entry) => ({ ...entry, label: entry.label.trim() })),
+      entries: draft.entries.map((entry) => ({ ...entry, label: entry.kind === 'unknown' ? '?' : entry.label.trim() })),
     })
   }
 
@@ -81,11 +83,18 @@ export default function DayEditorModal({ date, initialDay, isOverride, employees
                   <select value={entry.employeeId} onChange={(event) => updateEntry(index, { ...entry, employeeId: event.target.value })} aria-label="Employee">
                     {employees.map((employee) => <option value={employee.id} key={employee.id}>{employee.name}</option>)}
                   </select>
-                  <select className="kind-select" value={entry.kind} onChange={(event) => updateEntry(index, { ...entry, kind: event.target.value as ScheduleEntry['kind'] })} aria-label="Entry type">
-                    <option value="shift">Shift</option>
+                  <select className="kind-select" value={entry.kind} onChange={(event) => {
+                    const kind = event.target.value as ScheduleEntry['kind']
+                    const employee = employees.find((item) => item.id === entry.employeeId)
+                    updateEntry(index, { ...entry, kind, label: kind === 'off' ? 'OFF' : kind === 'unknown' ? '?' : formatTimeLabel(employee?.defaultTime ?? '') })
+                  }} aria-label="Entry type">
+                    <option value="shift">Time</option>
                     <option value="off">Off</option>
+                    <option value="unknown">? Time not set</option>
                   </select>
-                  {entry.kind === 'off' ? (
+                  {entry.kind === 'unknown' ? (
+                    <span className="day-kind-value unknown">Time to confirm</span>
+                  ) : entry.kind === 'off' ? (
                     <input value={entry.label} onChange={(event) => updateEntry(index, { ...entry, label: event.target.value })} placeholder="OFF (reason)" aria-label="Off label" />
                   ) : (
                     <TimePicker value={entry.label} onChange={(label) => updateEntry(index, { ...entry, label })} />

@@ -15,11 +15,11 @@ export const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ]
 
-export const SAMPLE_TEMPLATE_ID = 'builtin-pharmacists-schedule-v7'
+export const SAMPLE_TEMPLATE_ID = 'builtin-pharmacists-schedule-v8'
 
 type SampleRow = { employeeId: string; kind: EntryKind; label: string }
 
-const SAMPLE_EMPLOYEE_NAMES = ['Bunmi', 'Chinenye', 'Esther', 'Elile', 'Gerren', 'Jonathan', 'Obi', 'Santana', 'Jose', 'Beena', 'Chris']
+const SAMPLE_EMPLOYEE_NAMES = ['Bunmi', 'Chinenye', 'Esther', 'Elile', 'Gerren', 'Jonathan', 'Obi', 'Santana', 'Jose']
 const SAMPLE_EMPLOYEE_IDS = SAMPLE_EMPLOYEE_NAMES.map((name) => `sample-${name.toLowerCase()}`)
 
 function sampleShift(employeeId: string, label: string): SampleRow {
@@ -147,7 +147,7 @@ export function createSampleTemplate(): ScheduleTemplate {
 
   return {
     id: SAMPLE_TEMPLATE_ID,
-    name: 'Pharmacists Schedule',
+    name: 'JPharma Pharmacists Schedule',
     builtIn: true,
     employees,
     weeklyTemplate,
@@ -156,9 +156,33 @@ export function createSampleTemplate(): ScheduleTemplate {
       '2026-09-17': sampleDay('2026-09-17', sampleRowsWithOff(sampleCommonRows(), 'sample-jonathan')),
       '2026-09-18': sampleDay('2026-09-18', sampleRowsWithOff(sampleCommonRows(), 'sample-jonathan')),
       '2027-09-17': sampleDay('2027-09-17', sampleRowsWithOff(sampleCommonRows(), 'sample-jonathan')),
+      '2026-10-30': createOctober30Override(employees, weeklyTemplate)!,
     },
     monthDayOverrides: {},
   }
+}
+
+/** Carry the weekly Friday schedule into October 30, with its two one-day changes. */
+export function createOctober30Override(employees: Employee[], template: WeeklyTemplate): DaySchedule | null {
+  const jonathan = employees.find((employee) => employee.name.trim().toLowerCase() === 'jonathan')
+  const elile = employees.find((employee) => employee.name.trim().toLowerCase() === 'elile')
+  if (!jonathan && !elile) return null
+
+  const day = cloneDay(template[5])
+  if (elile) {
+    const existing = day.entries.find((entry) => entry.employeeId === elile.id)
+    if (existing?.kind === 'shift' && normalizeTimeValue(existing.label) === '09:00') {
+      day.entries = day.entries.map((entry) => entry === existing ? { ...entry, kind: 'unknown', label: '?' } : entry)
+    } else if (!existing && normalizeTimeValue(elile.defaultTime) === '09:00') {
+      day.entries.push({ id: createId('entry'), employeeId: elile.id, kind: 'unknown', label: '?' })
+    }
+  }
+  if (jonathan) {
+    const existing = day.entries.find((entry) => entry.employeeId === jonathan.id)
+    day.entries = day.entries.filter((entry) => entry.employeeId !== jonathan.id)
+    day.entries.push({ id: existing?.id ?? createId('entry'), employeeId: jonathan.id, kind: 'off', label: 'OFF' })
+  }
+  return day
 }
 
 export function createId(prefix = 'id'): string {
@@ -188,15 +212,15 @@ export function createDefaultState(): SchedulerState {
   const sample = createSampleTemplate()
   const today = new Date()
   return {
-    version: 1,
+    version: 2,
     scheduleTitle: 'Staff Schedule',
-    employees: [],
-    weeklyTemplate: createDefaultTemplate(),
+    employees: sample.employees.map((employee) => ({ ...employee })),
+    weeklyTemplate: cloneWeeklyTemplate(sample.weeklyTemplate),
     templates: [sample],
-    activeTemplateId: null,
+    activeTemplateId: sample.id,
     selectedYear: today.getFullYear(),
     selectedMonth: today.getMonth(),
-    currentMonthOverrides: {},
+    dateOverrides: cloneMonthOverrides(sample.monthOverrides),
   }
 }
 

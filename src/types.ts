@@ -1,4 +1,4 @@
-export type EntryKind = 'shift' | 'off'
+export type EntryKind = 'shift' | 'off' | 'unknown'
 export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6
 
 export interface Employee {
@@ -33,7 +33,7 @@ export interface ScheduleTemplate {
 }
 
 export interface SchedulerState {
-  version: 1
+  version: 2
   scheduleTitle: string
   employees: Employee[]
   weeklyTemplate: WeeklyTemplate
@@ -41,5 +41,6 @@ export interface SchedulerState {
   activeTemplateId: string | null
   selectedYear: number
   selectedMonth: number
-  currentMonthOverrides: Record<string, DaySchedule>
+  /** One-day changes for every month, keyed by YYYY-MM-DD. */
+  dateOverrides: Record<string, DaySchedule>
 }

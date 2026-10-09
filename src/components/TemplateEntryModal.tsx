@@ -31,11 +31,11 @@ export default function TemplateEntryModal({ entry, isNew, weekdayName, employee
   }, [onClose])
 
   function save() {
-    if (!draft.employeeId || !draft.label.trim()) {
-      setError(draft.kind === 'off' ? 'Enter an off label before saving.' : 'Choose an hour, minute, and AM/PM before saving.')
+    if (!draft.employeeId || (draft.kind !== 'unknown' && !draft.label.trim())) {
+      setError(draft.kind === 'off' ? 'Enter an off label before saving.' : 'Choose an hour, minute, and AM/PM, or mark the time as ?.')
       return
     }
-    onSave({ ...draft, label: draft.label.trim() })
+    onSave({ ...draft, label: draft.kind === 'unknown' ? '?' : draft.label.trim() })
   }
 
   return (
@@ -64,13 +64,16 @@ export default function TemplateEntryModal({ entry, isNew, weekdayName, employee
             </div>
             <div>
               <label className="field-label" htmlFor="template-entry-kind">Entry type</label>
-              <select id="template-entry-kind" className="modal-full-select" value={draft.kind} onChange={(event) => setDraft((current) => ({ ...current, kind: event.target.value as ScheduleEntry['kind'], label: event.target.value === 'off' ? '' : current.label }))}>
-                <option value="shift">Shift</option>
+              <select id="template-entry-kind" className="modal-full-select" value={draft.kind} onChange={(event) => setDraft((current) => ({ ...current, kind: event.target.value as ScheduleEntry['kind'], label: event.target.value === 'off' ? 'OFF' : event.target.value === 'unknown' ? '?' : '' }))}>
+                <option value="shift">Time</option>
                 <option value="off">Off</option>
+                <option value="unknown">? Time not set</option>
               </select>
             </div>
             <div>
-              {draft.kind === 'off' ? (
+              {draft.kind === 'unknown' ? (
+                <span className="day-kind-value unknown">Time to confirm</span>
+              ) : draft.kind === 'off' ? (
                 <>
                   <label className="field-label" htmlFor="template-entry-label">Off label</label>
                   <input id="template-entry-label" className="modal-full-input" value={draft.label} onChange={(event) => setDraft((current) => ({ ...current, label: event.target.value }))} placeholder="OFF (reason)" />

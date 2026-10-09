@@ -16,7 +16,8 @@ interface ScheduleCalendarProps {
 export default function ScheduleCalendar({ year, month, scheduleTitle, employees, template, overrides, onEditDate }: ScheduleCalendarProps) {
   const cells = getCalendarCells(year, month)
   const employeeNames = new Map(employees.map((employee) => [employee.id, employee.name]))
-  const editedCount = Object.keys(overrides).length
+  const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}-`
+  const editedCount = Object.keys(overrides).filter((key) => key.startsWith(monthPrefix)).length
   const hasSchedule = ([1, 2, 3, 4, 5] as Weekday[]).some((day) => template[day].entries.length > 0)
 
   function openDate(date: Date) {
@@ -71,9 +72,9 @@ export default function ScheduleCalendar({ year, month, scheduleTitle, employees
               </div>
               <div className="cell-content">
                 {day.entries.map((entry) => (
-                  <div className={`calendar-entry ${entry.kind === 'off' ? 'off-entry' : ''}`} key={entry.id}>
+                  <div className={`calendar-entry ${entry.kind === 'off' ? 'off-entry' : entry.kind === 'unknown' ? 'unknown-entry' : ''}`} key={entry.id}>
                     <span className="calendar-employee">{employeeNames.get(entry.employeeId) ?? 'Employee'}</span>
-                    <span className="calendar-value">{entry.label || '—'}</span>
+                    <span className="calendar-value">{entry.kind === 'unknown' ? '?' : entry.label || '—'}</span>
                   </div>
                 ))}
                 {day.note && <div className="calendar-note">{day.note}</div>}

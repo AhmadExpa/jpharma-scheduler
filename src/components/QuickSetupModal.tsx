@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { WEEKDAYS } from '../dateUtils'
+import { formatTimeLabel, WEEKDAYS } from '../dateUtils'
 import type { DaySchedule, Employee, ScheduleEntry, Weekday } from '../types'
 import Icon from './Icon'
 import TimePicker from './TimePicker'
@@ -20,10 +20,19 @@ function getExistingTime(employeeId: string, template: Record<Weekday, DaySchedu
 }
 
 export default function QuickSetupModal({ employees, template, onClose, onSave }: QuickSetupModalProps) {
-  const [selectedDays, setSelectedDays] = useState<Weekday[]>([1, 2, 3, 4])
-  const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>(() => employees.map((employee) => employee.id))
+  const [selectedDays, setSelectedDays] = useState<Weekday[]>(() => {
+    const configuredDays = WEEKDAYS.filter((day) => template[day.value].entries.length > 0).map((day) => day.value)
+    return configuredDays.length > 0 ? configuredDays : [1, 2, 3, 4, 5]
+  })
+  const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>(() => {
+    const scheduled = employees.filter((employee) => getExistingTime(employee.id, template) || employee.defaultTime)
+    return (scheduled.length > 0 ? scheduled : employees).map((employee) => employee.id)
+  })
   const [employeeToAdd, setEmployeeToAdd] = useState('')
-  const [times, setTimes] = useState<Record<string, string>>(() => Object.fromEntries(employees.map((employee) => [employee.id, getExistingTime(employee.id, template)])))
+  const [times, setTimes] = useState<Record<string, string>>(() => Object.fromEntries(employees.map((employee) => [
+    employee.id,
+    formatTimeLabel(employee.defaultTime ?? '') || getExistingTime(employee.id, template),
+  ])))
   const [error, setError] = useState('')
 
   const selectedEmployees = employees.filter((employee) => selectedEmployeeIds.includes(employee.id))
@@ -100,7 +109,7 @@ export default function QuickSetupModal({ employees, template, onClose, onSave }
 
           <div className="quick-setup-section">
             <div className="quick-section-heading">
-              <div><h3>Repeating weekdays</h3><p>Monday–Thursday are selected for the standard work week.</p></div>
+              <div><h3>Repeating weekdays</h3><p>Monday–Friday are selected for the standard work week.</p></div>
               <span>{selectedDays.length} selected</span>
             </div>
             <div className="quick-days" role="group" aria-label="Repeating weekdays">
@@ -142,7 +151,7 @@ export default function QuickSetupModal({ employees, template, onClose, onSave }
         </div>
 
         <div className="modal-footer">
-          <span className="quick-footer-note">Friday and weekend exceptions can be edited separately.</span>
+          <span className="quick-footer-note">One-day exceptions can be edited on the calendar.</span>
           <div className="footer-actions">
             <button className="button secondary" type="button" onClick={onClose}>Cancel</button>
             <button className="button primary" type="button" onClick={save}><Icon name="check" size={16} /> Create pattern</button>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createId, formatDateLong, formatTimeLabel, getWeekdayName, normalizeTimeValue, timeLabelToInput } from '../dateUtils'
-import type { DaySchedule, Employee, ScheduleEntry } from '../types'
+import type { DaySchedule, Employee, EntryKind, ScheduleEntry } from '../types'
 import Icon from './Icon'
 
 interface SimpleDayEditorModalProps {
@@ -18,11 +18,15 @@ export default function SimpleDayEditorModal({ date, initialDay, isOverride, emp
   const [draft, setDraft] = useState<DaySchedule>(initialDay)
   const [employeeToAdd, setEmployeeToAdd] = useState('')
   const [error, setError] = useState('')
+  const [rememberedTimes, setRememberedTimes] = useState<Record<string, string>>({})
 
   useEffect(() => {
     setDraft(initialDay)
     setEmployeeToAdd('')
     setError('')
+    setRememberedTimes(Object.fromEntries(initialDay.entries
+      .filter((entry) => entry.kind === 'shift' && normalizeTimeValue(entry.label))
+      .map((entry) => [entry.id, formatTimeLabel(entry.label)])))
   }, [initialDay, date])
 
   useEffect(() => {
@@ -46,17 +50,32 @@ export default function SimpleDayEditorModal({ date, initialDay, isOverride, emp
     setError('')
   }
 
+  function setEntryKind(index: number, kind: EntryKind, employee?: Employee) {
+    const entry = draft.entries[index]
+    if (!entry) return
+    if (entry.kind === 'shift' && normalizeTimeValue(entry.label)) {
+      setRememberedTimes((current) => ({ ...current, [entry.id]: formatTimeLabel(entry.label) }))
+    }
+    updateEntry(index, {
+      kind,
+      label: kind === 'off' ? 'OFF'
+        : kind === 'unknown' ? '?'
+          : rememberedTimes[entry.id] || formatTimeLabel(employee?.defaultTime ?? ''),
+    })
+  }
+
   function addEmployee(employeeId: string) {
     if (!employeeId) return
     const employee = employees.find((item) => item.id === employeeId)
     if (!employee) return
+    const time = formatTimeLabel(employee.defaultTime ?? '')
     setDraft((current) => ({
       ...current,
       entries: [...current.entries, {
         id: createId('entry'),
         employeeId,
-        kind: 'shift',
-        label: formatTimeLabel(employee.defaultTime ?? ''),
+        kind: time ? 'shift' : 'unknown',
+        label: time || '?',
       }],
     }))
     setEmployeeToAdd('')
@@ -70,14 +89,14 @@ export default function SimpleDayEditorModal({ date, initialDay, isOverride, emp
       return
     }
     if (draft.entries.some((entry) => entry.kind === 'shift' && !normalizeTimeValue(entry.label))) {
-      setError('Choose a time for every scheduled employee, or mark them off.')
+      setError('Choose a time, OFF, or ? for every employee.')
       return
     }
     onSave({
       note: draft.note.trim(),
       entries: draft.entries.map((entry) => ({
         ...entry,
-        label: entry.kind === 'off' ? 'OFF' : formatTimeLabel(entry.label),
+        label: entry.kind === 'off' ? 'OFF' : entry.kind === 'unknown' ? '?' : formatTimeLabel(entry.label),
       })),
     })
   }
@@ -96,7 +115,7 @@ export default function SimpleDayEditorModal({ date, initialDay, isOverride, emp
         <div className="modal-body">
           <div className="modal-callout">
             <Icon name="calendar" size={17} />
-            <span>{isOverride ? 'This day has its own changes.' : `This day follows the ${getWeekdayName(date.getDay())} schedule.`}</span>
+            <span>{isOverride ? 'This day has its own changes.' : `This day follows the ${getWeekdayName(date.getDay())} schedule.`} Choose Time, OFF, or ? when a time is not confirmed.</span>
           </div>
 
           {employees.length === 0 ? (
@@ -109,29 +128,27 @@ export default function SimpleDayEditorModal({ date, initialDay, isOverride, emp
                 return (
                   <div className="simple-day-row" key={entry.id}>
                     <strong>{employee?.name ?? 'Employee'}</strong>
-                    {entry.kind === 'off' ? (
-                      <span className="off-label">Off today</span>
-                    ) : (
+                    <div className="day-kind-options" role="group" aria-label={`Status for ${employee?.name ?? 'employee'}`}>
+                      <button className={entry.kind === 'shift' ? 'active' : ''} type="button" aria-pressed={entry.kind === 'shift'} onClick={() => setEntryKind(index, 'shift', employee)}>Time</button>
+                      <button className={entry.kind === 'off' ? 'active off' : ''} type="button" aria-pressed={entry.kind === 'off'} onClick={() => setEntryKind(index, 'off', employee)}>OFF</button>
+                      <button className={entry.kind === 'unknown' ? 'active unknown' : ''} type="button" aria-pressed={entry.kind === 'unknown'} onClick={() => setEntryKind(index, 'unknown', employee)} title="Time not confirmed">?</button>
+                    </div>
+                    {entry.kind === 'shift' ? (
                       <input
                         className="simple-time-input"
                         type="time"
                         step="300"
                         value={timeLabelToInput(entry.label)}
-                        onChange={(event) => updateEntry(index, { label: event.target.value ? formatTimeLabel(event.target.value) : '' })}
+                        onChange={(event) => {
+                          const time = event.target.value ? formatTimeLabel(event.target.value) : ''
+                          updateEntry(index, { label: time })
+                          if (time) setRememberedTimes((current) => ({ ...current, [entry.id]: time }))
+                        }}
                         aria-label={`Time for ${employee?.name ?? 'employee'}`}
                       />
+                    ) : (
+                      <span className={`day-kind-value ${entry.kind}`}>{entry.kind === 'off' ? 'Off today' : 'Time to confirm'}</span>
                     )}
-                    <label className="off-toggle">
-                      <input
-                        type="checkbox"
-                        checked={entry.kind === 'off'}
-                        onChange={(event) => updateEntry(index, {
-                          kind: event.target.checked ? 'off' : 'shift',
-                          label: event.target.checked ? 'OFF' : formatTimeLabel(employee?.defaultTime ?? ''),
-                        })}
-                      />
-                      Off
-                    </label>
                     <button className="small-action danger" type="button" onClick={() => setDraft((current) => ({ ...current, entries: current.entries.filter((_, entryIndex) => entryIndex !== index) }))} aria-label={`Remove ${employee?.name ?? 'employee'} from this day`} title="Remove from this day"><Icon name="trash" size={15} /></button>
                   </div>
                 )

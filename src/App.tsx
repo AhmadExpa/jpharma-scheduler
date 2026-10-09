@@ -47,13 +47,36 @@ function App() {
   useEffect(() => saveState(state), [state])
 
   useEffect(() => {
+    let lastCurrentMonth = `${new Date().getFullYear()}-${new Date().getMonth()}`
+    function rollToCurrentMonth() {
+      if (document.visibilityState === 'hidden') return
+      const today = new Date()
+      const currentMonth = `${today.getFullYear()}-${today.getMonth()}`
+      if (currentMonth === lastCurrentMonth) return
+      lastCurrentMonth = currentMonth
+      setState((current) => ({
+        ...current,
+        selectedYear: today.getFullYear(),
+        selectedMonth: today.getMonth(),
+      }))
+      setSelectedDate(null)
+    }
+    window.addEventListener('focus', rollToCurrentMonth)
+    document.addEventListener('visibilitychange', rollToCurrentMonth)
+    return () => {
+      window.removeEventListener('focus', rollToCurrentMonth)
+      document.removeEventListener('visibilitychange', rollToCurrentMonth)
+    }
+  }, [])
+
+  useEffect(() => {
     if (!toast) return undefined
     const timeout = window.setTimeout(() => setToast(''), 2600)
     return () => window.clearTimeout(timeout)
   }, [toast])
 
   const selectedDay = selectedDate
-    ? getDaySchedule(selectedDate, state.weeklyTemplate, state.currentMonthOverrides)
+    ? getDaySchedule(selectedDate, state.weeklyTemplate, state.dateOverrides)
     : null
 
   const hasSchedule = [0, 1, 2, 3, 4, 5, 6].some((day) => state.weeklyTemplate[day as Weekday].entries.length > 0)
@@ -119,14 +142,14 @@ function App() {
     updateState((current) => {
       const weeklyTemplate = { ...current.weeklyTemplate }
       for (let day = 0; day < 7; day += 1) weeklyTemplate[day as Weekday] = removeFromDay(weeklyTemplate[day as Weekday])
-      const currentMonthOverrides = Object.fromEntries(
-        Object.entries(current.currentMonthOverrides).map(([key, day]) => [key, removeFromDay(day)]),
+      const dateOverrides = Object.fromEntries(
+        Object.entries(current.dateOverrides).map(([key, day]) => [key, removeFromDay(day)]),
       )
       return {
         ...current,
         employees: current.employees.filter((item) => item.id !== id),
         weeklyTemplate,
-        currentMonthOverrides,
+        dateOverrides,
       }
     })
     showToast(`${employee.name} removed`)
@@ -213,7 +236,7 @@ function App() {
     setConfirmAction({
       eyebrow: 'Load saved template',
       title: `Load ${template.name}?`,
-      message: `Are you sure you want to discard current month changes and load “${template.name}” instead?`,
+      message: `This will replace your current schedule and its one-day changes with “${template.name}”. Continue?`,
       confirmLabel: 'Load template',
       icon: 'calendar',
       onConfirm: () => applyTemplate(template.id),
@@ -223,13 +246,16 @@ function App() {
   function applyTemplate(templateId: string) {
     const template = state.templates.find((item) => item.id === templateId)
     if (!template) return
-    const monthOverrides = getMonthTemplateOverrides(template, state.selectedYear, state.selectedMonth)
+    const dateOverrides = {
+      ...template.monthOverrides,
+      ...getMonthTemplateOverrides(template, state.selectedYear, state.selectedMonth),
+    }
     updateState((current) => ({
       ...current,
       employees: template.employees.map((employee) => ({ ...employee })),
       weeklyTemplate: cloneWeeklyTemplate(template.weeklyTemplate),
       activeTemplateId: template.id,
-      currentMonthOverrides: monthOverrides,
+      dateOverrides,
     }))
     setSelectedDate(null)
     setAdvancedDayEditorOpen(false)
@@ -259,33 +285,24 @@ function App() {
     showToast('Saved template deleted')
   }
 
-  function hasPendingOverrides() {
-    return Object.keys(state.currentMonthOverrides).length > 0
-  }
-
-  function getTemplateOverridesForMonth(year: number, month: number): Record<string, DaySchedule> {
-    const activeTemplate = state.templates.find((template) => template.id === state.activeTemplateId)
-    return activeTemplate ? getMonthTemplateOverrides(activeTemplate, year, month) : {}
-  }
-
-  function changeMonth(year: number, month: number, message = 'This month has one-day changes. Change the month anyway?') {
+  function changeMonth(year: number, month: number) {
     if (year === state.selectedYear && month === state.selectedMonth) return
-    if (hasPendingOverrides()) {
-      setConfirmAction({
-        eyebrow: 'Change month',
-        title: 'Change the schedule month?',
-        message,
-        confirmLabel: 'Change month',
-        icon: 'calendar',
-        onConfirm: () => applyMonthChange(year, month),
-      })
-      return
-    }
     applyMonthChange(year, month)
   }
 
   function applyMonthChange(year: number, month: number) {
-    updateState((current) => ({ ...current, selectedYear: year, selectedMonth: month, currentMonthOverrides: getTemplateOverridesForMonth(year, month) }))
+    updateState((current) => {
+      const activeTemplate = current.templates.find((template) => template.id === current.activeTemplateId)
+      const templateOverrides = activeTemplate && Object.keys(activeTemplate.monthDayOverrides).length > 0
+        ? getMonthTemplateOverrides(activeTemplate, year, month)
+        : {}
+      return {
+        ...current,
+        selectedYear: year,
+        selectedMonth: month,
+        dateOverrides: { ...templateOverrides, ...current.dateOverrides },
+      }
+    })
     setSelectedDate(null)
   }
 
@@ -334,7 +351,7 @@ function App() {
       scheduleTitle: 'Staff Schedule',
       employees: [],
       weeklyTemplate: createDefaultTemplate(),
-      currentMonthOverrides: {},
+      dateOverrides: {},
       activeTemplateId: null,
     }))
     setSelectedDate(null)
@@ -346,7 +363,7 @@ function App() {
     updateState((current) => ({
       ...current,
       weeklyTemplate: createDefaultTemplate(),
-      currentMonthOverrides: {},
+      dateOverrides: {},
       activeTemplateId: null,
     }))
     setSelectedDate(null)
@@ -357,7 +374,7 @@ function App() {
     if (!selectedDate) return
     updateState((current) => ({
       ...current,
-      currentMonthOverrides: { ...current.currentMonthOverrides, [dateKey(selectedDate)]: day },
+      dateOverrides: { ...current.dateOverrides, [dateKey(selectedDate)]: day },
     }))
     setSelectedDate(null)
     setAdvancedDayEditorOpen(false)
@@ -368,9 +385,9 @@ function App() {
     if (!selectedDate) return
     const key = dateKey(selectedDate)
     updateState((current) => {
-      const currentMonthOverrides = { ...current.currentMonthOverrides }
-      delete currentMonthOverrides[key]
-      return { ...current, currentMonthOverrides }
+      const dateOverrides = { ...current.dateOverrides }
+      delete dateOverrides[key]
+      return { ...current, dateOverrides }
     })
     setSelectedDate(null)
     setAdvancedDayEditorOpen(false)
@@ -402,7 +419,7 @@ function App() {
           <div>
             <p className="eyebrow">Monthly staff schedule</p>
             <h1>Make your schedule in minutes.</h1>
-            <p className="intro-copy">Add your employees and their start times. We will place them on the calendar automatically.</p>
+            <p className="intro-copy">{hasSchedule ? 'Your recurring team schedule is ready. Choose a month or click a day to make a change.' : 'Add your employees and their start times. We will place them on the calendar automatically.'}</p>
           </div>
         </div>
 
@@ -451,7 +468,7 @@ function App() {
               scheduleTitle={state.scheduleTitle}
               employees={state.employees}
               template={state.weeklyTemplate}
-              overrides={state.currentMonthOverrides}
+              overrides={state.dateOverrides}
               onEditDate={(date) => { setSelectedDate(date); setAdvancedDayEditorOpen(false) }}
             />
 

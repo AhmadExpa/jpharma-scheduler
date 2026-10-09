@@ -249,6 +249,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--mint-strong); bo
 .calendar-employee::after { content: ':'; margin-left: 1px; }
 .calendar-value { color: #4f5e55; white-space: nowrap; }
 .off-entry .calendar-value { color: var(--coral-deep); font-weight: 700; }
+.unknown-entry .calendar-value { color: #9b6b21; font-weight: 800; }
 .calendar-note { margin-top: 5px; padding-top: 6px; color: #65746b; border-top: 1px dashed var(--line-strong); font-size: 9px; font-style: italic; line-height: 1.3; }
 .cell-placeholder { display: block; padding-top: 8px; color: #bdc7c0; font-size: 10px; }
 .cell-edit-hint { position: absolute; right: 10px; bottom: 8px; display: flex; align-items: center; gap: 3px; color: #b3beb6; font-size: 8px; opacity: 0; transition: opacity .15s; }
@@ -284,6 +285,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--mint-strong); bo
 .modal-empty-state strong { color: var(--ink); font-size: 11px; }
 .modal-empty-state span { font-size: 10px; line-height: 1.35; }
 .modal-entry { display: grid; grid-template-columns: 1.2fr .7fr 1.45fr 29px; gap: 6px; align-items: center; }
+.modal-entry > .day-kind-value { min-width: 0; }
 .template-entry-modal { width: min(460px, 100%); }
 .template-entry-modal-body { padding-bottom: 20px; }
 .template-modal-fields { display: grid; gap: 16px; }
@@ -359,14 +361,20 @@ input:focus, select:focus, textarea:focus { border-color: var(--mint-strong); bo
 .advanced-reset-button { align-self: end; }
 .calendar-empty-message { display: flex; align-items: center; gap: 9px; margin: 0 18px 12px; padding: 9px 12px; color: var(--muted); border: 1px dashed var(--line-strong); border-radius: 8px; background: #fbfdfb; font-size: 10px; }
 .calendar-empty-message svg { color: var(--mint-deep); }
-.simple-day-modal { width: min(650px, 100%); }
+.simple-day-modal { width: min(740px, 100%); }
 .simple-day-list { display: grid; gap: 7px; }
-.simple-day-row { display: grid; grid-template-columns: minmax(0, 1fr) 140px auto 29px; align-items: center; gap: 9px; padding: 8px 9px; border: 1px solid var(--line); border-radius: 10px; background: #fbfcfb; }
+.simple-day-row { display: grid; grid-template-columns: minmax(0, 1fr) 142px 140px 29px; align-items: center; gap: 9px; padding: 8px 9px; border: 1px solid var(--line); border-radius: 10px; background: #fbfcfb; }
 .simple-day-row strong { min-width: 0; overflow: hidden; color: var(--ink); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 .simple-day-row .simple-time-input { width: 100%; height: 34px; padding: 0 8px; font-size: 11px; }
-.off-toggle { display: flex; align-items: center; gap: 5px; color: var(--muted); font-size: 10px; white-space: nowrap; }
-.off-toggle input { accent-color: var(--coral-deep); }
-.off-label { color: var(--coral-deep); font-size: 10px; font-weight: 700; }
+.day-kind-options { display: flex; gap: 2px; padding: 3px; border: 1px solid var(--line-strong); border-radius: 8px; background: #fff; }
+.day-kind-options button { flex: 1; min-width: 0; min-height: 26px; padding: 0 4px; color: var(--muted); border: 0; border-radius: 5px; background: transparent; font-size: 10px; font-weight: 700; }
+.day-kind-options button:hover { color: var(--ink); background: #f3f6f3; }
+.day-kind-options button.active { color: var(--mint-deep); background: var(--mint); }
+.day-kind-options button.active.off { color: var(--coral-deep); background: var(--coral); }
+.day-kind-options button.active.unknown { color: #8a5d1f; background: #fff1d8; }
+.day-kind-value { display: flex; align-items: center; min-height: 34px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; font-size: 10px; font-weight: 700; }
+.day-kind-value.off { color: var(--coral-deep); }
+.day-kind-value.unknown { color: #8a5d1f; }
 .simple-day-add select { width: 100%; height: 35px; padding: 0 9px; color: var(--muted); font-size: 10px; }
 .day-more-details { margin-top: 16px; }
 .day-more-details summary { color: var(--muted); cursor: pointer; font-size: 10px; font-weight: 700; }
@@ -486,13 +494,13 @@ input:focus, select:focus, textarea:focus { border-color: var(--mint-strong); bo
   }
   .modal-entry > select:first-child { grid-area: employee; }
   .modal-entry > .kind-select { grid-area: kind; max-width: 92px; }
-  .modal-entry > input, .modal-entry > .time-picker { grid-area: time; }
+  .modal-entry > input, .modal-entry > .time-picker, .modal-entry > .day-kind-value { grid-area: time; }
   .modal-entry > .small-action { grid-area: remove; justify-self: end; }
-  .simple-day-row { grid-template-columns: minmax(0, 1fr) 29px; gap: 6px; }
-  .simple-day-row .simple-time-input { grid-column: 1; }
-  .simple-day-row .off-toggle { grid-column: 1; }
-  .simple-day-row .small-action { grid-column: 2; grid-row: 1 / span 2; }
-  .simple-day-row .off-label { grid-column: 1; }
+  .simple-day-row { grid-template-columns: minmax(0, 1fr) 29px; grid-template-areas: "name remove" "status status" "value value"; gap: 6px; }
+  .simple-day-row strong { grid-area: name; }
+  .simple-day-row .day-kind-options { grid-area: status; width: min(100%, 220px); }
+  .simple-day-row .simple-time-input, .simple-day-row .day-kind-value { grid-area: value; }
+  .simple-day-row .small-action { grid-area: remove; }
   .modal-secondary-actions { align-self: start; flex-wrap: wrap; }
   .quick-setup-modal .modal-body { padding-top: 17px; }
   .quick-team-row { align-items: start; flex-direction: column; gap: 7px; }

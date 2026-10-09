@@ -63,7 +63,7 @@ const DEMO_STEPS: DemoStep[] = [
     target: ['[data-demo-target="calendar-cell"]'],
     eyebrow: 'Step 7 · 8 of 9',
     title: 'Click a day when something changes',
-    message: 'You can change one time, mark someone off, or add someone just for that day. That change will not alter the whole week.',
+    message: 'You can change one time, mark someone OFF, choose ? when a time is unknown, or add someone just for that day. That change will not alter the whole week.',
     nextLabel: 'Next: advanced features',
   },
   {
