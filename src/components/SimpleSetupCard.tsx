@@ -33,7 +33,7 @@ export default function SimpleSetupCard({
     ))
   }, [employees])
 
-  const ready = employees.length > 0 && employees.every((employee) => Boolean(employee.defaultTime))
+  const ready = employees.length > 0
 
   function submit(event: FormEvent) {
     event.preventDefault()
@@ -60,7 +60,7 @@ export default function SimpleSetupCard({
 
   function apply() {
     if (!ready) {
-      setError(employees.length === 0 ? 'Add at least one employee first.' : 'Add a time for every employee.')
+      setError('Add at least one employee first.')
       return
     }
     setError('')
@@ -77,8 +77,8 @@ export default function SimpleSetupCard({
         </div>
         <span className="count-pill">{employees.length}</span>
       </div>
-      <p className="simple-setup-copy">{hasSchedule ? 'Your team and times are ready. They repeat Monday–Friday in every month.' : 'Add each person, choose their start time, then put the schedule on the calendar.'}</p>
-      <InfoTag className="simple-setup-info">One time per person · repeats Monday–Friday</InfoTag>
+      <p className="simple-setup-copy">{hasSchedule ? 'Your team schedule repeats Monday–Friday in every month.' : 'Add each person and their start time, then put the schedule on the calendar.'}</p>
+      <InfoTag className="simple-setup-info">Blank time = ? · repeats Monday–Friday</InfoTag>
 
       <form className="simple-add-row" onSubmit={submit}>
         <input
@@ -129,7 +129,7 @@ export default function SimpleSetupCard({
       <div className="simple-setup-footer">
         <div>
           <strong>Repeats Monday–Friday</strong>
-          <span>{ready ? 'Everything is ready to add to the calendar.' : 'Give everyone a time before adding the schedule.'}</span>
+          <span>{ready ? 'Blank times appear as ? until you know them.' : 'Add an employee to start the schedule.'}</span>
         </div>
         <button className="button primary setup-apply-button" type="button" onClick={apply} data-demo-target="apply-schedule">
           <Icon name="calendar" size={16} /> {hasSchedule ? 'Update calendar' : 'Add schedule to calendar'}

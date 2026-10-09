@@ -9,7 +9,7 @@ interface SimpleDayEditorModalProps {
   isOverride: boolean
   employees: Employee[]
   onClose: () => void
-  onSave: (day: DaySchedule) => void
+  onSave: (day: DaySchedule, repeatEmployeeIds: string[]) => void
   onReset: () => void
   onOpenAdvanced: () => void
 }
@@ -19,11 +19,13 @@ export default function SimpleDayEditorModal({ date, initialDay, isOverride, emp
   const [employeeToAdd, setEmployeeToAdd] = useState('')
   const [error, setError] = useState('')
   const [rememberedTimes, setRememberedTimes] = useState<Record<string, string>>({})
+  const [repeatEmployeeIds, setRepeatEmployeeIds] = useState<string[]>([])
 
   useEffect(() => {
     setDraft(initialDay)
     setEmployeeToAdd('')
     setError('')
+    setRepeatEmployeeIds([])
     setRememberedTimes(Object.fromEntries(initialDay.entries
       .filter((entry) => entry.kind === 'shift' && normalizeTimeValue(entry.label))
       .map((entry) => [entry.id, formatTimeLabel(entry.label)])))
@@ -98,7 +100,7 @@ export default function SimpleDayEditorModal({ date, initialDay, isOverride, emp
         ...entry,
         label: entry.kind === 'off' ? 'OFF' : entry.kind === 'unknown' ? '?' : formatTimeLabel(entry.label),
       })),
-    })
+    }, repeatEmployeeIds.filter((id) => employeeIds.includes(id)))
   }
 
   return (
@@ -115,7 +117,7 @@ export default function SimpleDayEditorModal({ date, initialDay, isOverride, emp
         <div className="modal-body">
           <div className="modal-callout">
             <Icon name="calendar" size={17} />
-            <span>{isOverride ? 'This day has its own changes.' : `This day follows the ${getWeekdayName(date.getDay())} schedule.`} Choose Time, OFF, or ? when a time is not confirmed.</span>
+            <span>{isOverride ? 'This day has its own changes.' : `This day follows the ${getWeekdayName(date.getDay())} schedule.`} Choose Time, OFF, or ?. Turn on Repeat Mon–Fri for anyone whose choice should appear every weekday.</span>
           </div>
 
           {employees.length === 0 ? (
@@ -150,6 +152,17 @@ export default function SimpleDayEditorModal({ date, initialDay, isOverride, emp
                       <span className={`day-kind-value ${entry.kind}`}>{entry.kind === 'off' ? 'Off today' : 'Time to confirm'}</span>
                     )}
                     <button className="small-action danger" type="button" onClick={() => setDraft((current) => ({ ...current, entries: current.entries.filter((_, entryIndex) => entryIndex !== index) }))} aria-label={`Remove ${employee?.name ?? 'employee'} from this day`} title="Remove from this day"><Icon name="trash" size={15} /></button>
+                    <button
+                      className={`repeat-weekdays-toggle ${repeatEmployeeIds.includes(entry.employeeId) ? 'active' : ''}`}
+                      type="button"
+                      aria-pressed={repeatEmployeeIds.includes(entry.employeeId)}
+                      onClick={() => setRepeatEmployeeIds((current) => current.includes(entry.employeeId)
+                        ? current.filter((id) => id !== entry.employeeId)
+                        : [...current, entry.employeeId])}
+                      title={`Repeat ${employee?.name ?? 'this employee'}'s choice every Monday–Friday`}
+                    >
+                      <Icon name="refresh" size={12} /> Repeat Mon–Fri
+                    </button>
                   </div>
                 )
               })}

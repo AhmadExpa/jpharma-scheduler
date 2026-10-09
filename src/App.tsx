@@ -21,6 +21,7 @@ import {
   getDaySchedule,
   getTemplateOverridesForMonth as getMonthTemplateOverrides,
   MONTHS,
+  repeatEntriesMondayFriday,
 } from './dateUtils'
 import { loadState, saveState } from './storage'
 import type { DaySchedule, Employee, SchedulerState, ScheduleTemplate, Weekday } from './types'
@@ -164,8 +165,8 @@ function App() {
   }
 
   function applySimpleSchedule() {
-    if (state.employees.length === 0 || state.employees.some((employee) => !employee.defaultTime)) {
-      showToast(state.employees.length === 0 ? 'Add an employee first' : 'Add a time for every employee')
+    if (state.employees.length === 0) {
+      showToast('Add an employee first')
       return
     }
 
@@ -370,15 +371,19 @@ function App() {
     showToast('Calendar reset — your team and saved templates were kept')
   }
 
-  function saveDateOverride(day: DaySchedule) {
+  function saveDateOverride(day: DaySchedule, repeatEmployeeIds: string[] = []) {
     if (!selectedDate) return
+    const key = dateKey(selectedDate)
     updateState((current) => ({
       ...current,
-      dateOverrides: { ...current.dateOverrides, [dateKey(selectedDate)]: day },
+      weeklyTemplate: repeatEmployeeIds.length > 0
+        ? repeatEntriesMondayFriday(current.weeklyTemplate, day.entries.filter((entry) => repeatEmployeeIds.includes(entry.employeeId)))
+        : current.weeklyTemplate,
+      dateOverrides: { ...current.dateOverrides, [key]: day },
     }))
     setSelectedDate(null)
     setAdvancedDayEditorOpen(false)
-    showToast('Day saved')
+    showToast(repeatEmployeeIds.length > 0 ? 'Day saved · selected choices repeat Monday–Friday' : 'Day saved')
   }
 
   function resetDateOverride() {
@@ -419,7 +424,7 @@ function App() {
           <div>
             <p className="eyebrow">Monthly staff schedule</p>
             <h1>Make your schedule in minutes.</h1>
-            <p className="intro-copy">{hasSchedule ? 'Your recurring team schedule is ready. Choose a month or click a day to make a change.' : 'Add your employees and their start times. We will place them on the calendar automatically.'}</p>
+            <p className="intro-copy">{hasSchedule ? 'Your recurring team schedule is ready. Choose a month or click a day to make a change.' : 'Add your employees. A blank start time will show as ? until it is confirmed.'}</p>
           </div>
         </div>
 

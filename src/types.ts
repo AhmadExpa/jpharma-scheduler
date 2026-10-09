@@ -33,7 +33,7 @@ export interface ScheduleTemplate {
 }
 
 export interface SchedulerState {
-  version: 2
+  version: 3
   scheduleTitle: string
   employees: Employee[]
   weeklyTemplate: WeeklyTemplate

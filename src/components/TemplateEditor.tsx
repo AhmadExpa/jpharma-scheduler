@@ -29,11 +29,11 @@ export default function TemplateEditor({ employees, template, onUpdateDays }: Te
           </div>
         </div>
 
-        <p className="card-copy">Set the repeating weekdays, team members, and shift times together in one quick setup.</p>
+        <p className="card-copy">Set the repeating weekdays and each person's Time, OFF, or ? in one quick setup.</p>
 
         <button className="quick-setup-button" type="button" onClick={() => setQuickSetupOpen(true)} disabled={employees.length === 0}>
           <span className="quick-setup-icon"><Icon name="settings" size={14} /></span>
-          <span><strong>Quick setup for the team</strong><small>Choose weekdays, employees, and times</small></span>
+          <span><strong>Quick setup for the team</strong><small>Repeat Time, OFF, or ? on chosen weekdays</small></span>
           <Icon name="arrow-right" size={15} />
         </button>
 

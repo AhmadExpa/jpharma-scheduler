@@ -307,8 +307,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--mint-strong); bo
 .quick-team-list { display: grid; gap: 7px; }
 .quick-team-row { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 8px 9px; border: 1px solid var(--line); border-radius: 9px; background: #fbfcfb; }
 .quick-team-row strong { min-width: 0; overflow: hidden; color: var(--ink); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
-.quick-team-row-actions { display: flex; align-items: center; gap: 5px; flex: 0 0 auto; }
-.quick-team-row .time-picker { width: 230px; gap: 5px; }
+.quick-team-row-actions { display: flex; align-items: center; gap: 5px; flex: 0 0 auto; min-width: 0; }
+.quick-kind-select { width: 86px; height: 34px; flex: 0 0 86px; padding: 0 6px; border: 1px solid var(--line-strong); border-radius: 7px; background: #fff; font-size: 10px; font-weight: 700; }
+.quick-team-row .time-picker { width: 195px; gap: 5px; }
+.quick-team-row .day-kind-value { width: 195px; }
 .quick-team-row .time-picker select { height: 34px; font-size: 10px; }
 .quick-add-team-member select { width: 100%; height: 34px; padding: 0 9px; color: var(--muted); font-size: 10px; }
 .quick-team-empty { margin: 0; min-height: 49px; }
@@ -366,6 +368,9 @@ input:focus, select:focus, textarea:focus { border-color: var(--mint-strong); bo
 .simple-day-row { display: grid; grid-template-columns: minmax(0, 1fr) 142px 140px 29px; align-items: center; gap: 9px; padding: 8px 9px; border: 1px solid var(--line); border-radius: 10px; background: #fbfcfb; }
 .simple-day-row strong { min-width: 0; overflow: hidden; color: var(--ink); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 .simple-day-row .simple-time-input { width: 100%; height: 34px; padding: 0 8px; font-size: 11px; }
+.repeat-weekdays-toggle { grid-column: 2 / 4; justify-self: start; display: inline-flex; align-items: center; gap: 5px; min-height: 24px; padding: 2px 7px; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; background: #fff; font-size: 9px; font-weight: 700; }
+.repeat-weekdays-toggle:hover { color: var(--mint-deep); border-color: var(--mint-strong); }
+.repeat-weekdays-toggle.active { color: var(--mint-deep); border-color: var(--mint-strong); background: var(--mint); }
 .day-kind-options { display: flex; gap: 2px; padding: 3px; border: 1px solid var(--line-strong); border-radius: 8px; background: #fff; }
 .day-kind-options button { flex: 1; min-width: 0; min-height: 26px; padding: 0 4px; color: var(--muted); border: 0; border-radius: 5px; background: transparent; font-size: 10px; font-weight: 700; }
 .day-kind-options button:hover { color: var(--ink); background: #f3f6f3; }
@@ -496,16 +501,17 @@ input:focus, select:focus, textarea:focus { border-color: var(--mint-strong); bo
   .modal-entry > .kind-select { grid-area: kind; max-width: 92px; }
   .modal-entry > input, .modal-entry > .time-picker, .modal-entry > .day-kind-value { grid-area: time; }
   .modal-entry > .small-action { grid-area: remove; justify-self: end; }
-  .simple-day-row { grid-template-columns: minmax(0, 1fr) 29px; grid-template-areas: "name remove" "status status" "value value"; gap: 6px; }
+  .simple-day-row { grid-template-columns: minmax(0, 1fr) 29px; grid-template-areas: "name remove" "status status" "value value" "repeat repeat"; gap: 6px; }
   .simple-day-row strong { grid-area: name; }
   .simple-day-row .day-kind-options { grid-area: status; width: min(100%, 220px); }
   .simple-day-row .simple-time-input, .simple-day-row .day-kind-value { grid-area: value; }
   .simple-day-row .small-action { grid-area: remove; }
+  .simple-day-row .repeat-weekdays-toggle { grid-area: repeat; grid-column: auto; }
   .modal-secondary-actions { align-self: start; flex-wrap: wrap; }
   .quick-setup-modal .modal-body { padding-top: 17px; }
   .quick-team-row { align-items: start; flex-direction: column; gap: 7px; }
   .quick-team-row-actions { width: 100%; }
-  .quick-team-row .time-picker { width: 100%; }
+  .quick-team-row .time-picker, .quick-team-row .day-kind-value { width: auto; min-width: 0; flex: 1; }
   .quick-team-row .time-picker select { height: 38px; font-size: 11px; }
   .quick-footer-note { max-width: none; align-self: start; }
   .modal-footer { align-items: end; flex-direction: column; }

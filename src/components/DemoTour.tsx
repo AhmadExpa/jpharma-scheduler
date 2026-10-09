@@ -42,7 +42,7 @@ const DEMO_STEPS: DemoStep[] = [
     target: ['[data-demo-target="employee-time"]', '[data-demo-target="setup-card"]'],
     eyebrow: 'Step 4 · 5 of 9',
     title: 'Choose a start time',
-    message: 'After a person is added, choose one start time. The same time repeats Monday through Friday.',
+    message: 'After a person is added, choose a start time. If you do not know it yet, leave it blank to show ? on the calendar.',
     nextLabel: 'Next: add to calendar',
   },
   {

@@ -1,4 +1,4 @@
-import { cloneWeeklyTemplate, createDefaultState, createOctober30Override, createSampleTemplate, createSimpleWeeklyTemplate, getEmployeeDefaultTime, hydrateEmployeeTimes, normalizeTimeValue, SAMPLE_TEMPLATE_ID } from './dateUtils'
+import { cloneWeeklyTemplate, createDefaultState, createOctober30Override, createSampleTemplate, createSimpleWeeklyTemplate, getEmployeeDefaultTime, hydrateEmployeeTimes, normalizeTimeValue, replaceElileNineWithUnknown, SAMPLE_TEMPLATE_ID } from './dateUtils'
 import type { DaySchedule, Employee, ScheduleEntry, ScheduleTemplate, SchedulerState, Weekday, WeeklyTemplate } from './types'
 
 const STORAGE_KEY = 'jpharma-scheduler:v1'
@@ -70,18 +70,47 @@ function cleanTemplateRecord(value: unknown): ScheduleTemplate | null {
   }
 }
 
+function migrateElileEmployees(employees: Employee[]): Employee[] {
+  return employees.map((employee) => employee.name.trim().toLowerCase() === 'elile'
+    && normalizeTimeValue(employee.defaultTime) === '09:00'
+    ? { ...employee, defaultTime: null }
+    : employee)
+}
+
+function migrateElileDays(employees: Employee[], days: Record<string, DaySchedule>): Record<string, DaySchedule> {
+  return Object.fromEntries(Object.entries(days).map(([key, day]) => [key, replaceElileNineWithUnknown(employees, day)]))
+}
+
+function migrateElileTemplate(employees: Employee[], template: WeeklyTemplate): WeeklyTemplate {
+  const result = {} as WeeklyTemplate
+  for (let day = 0; day < 7; day += 1) {
+    result[day as Weekday] = replaceElileNineWithUnknown(employees, template[day as Weekday])
+  }
+  return result
+}
+
 function cleanState(value: unknown): SchedulerState {
   const fallback = createDefaultState()
   if (!isRecord(value)) return fallback
 
   const storedActiveTemplateId = typeof value.activeTemplateId === 'string' ? value.activeTemplateId : null
   const oldBuiltInSample = storedActiveTemplateId?.startsWith('builtin-pharmacists-schedule-') === true
+  const legacyV1 = value.version !== 2 && value.version !== 3
+  const migrateElile = value.version !== 3
   const storedEmployees = cleanEmployees(value.employees)
   const savedTemplates = Array.isArray(value.templates)
     ? value.templates.map(cleanTemplateRecord).filter((template): template is ScheduleTemplate => template !== null)
     : []
   const sampleTemplate = createSampleTemplate()
-  const templates = [sampleTemplate, ...savedTemplates.filter((template) => template.id !== SAMPLE_TEMPLATE_ID && !template.builtIn)]
+  const templates = [sampleTemplate, ...savedTemplates
+    .filter((template) => template.id !== SAMPLE_TEMPLATE_ID && !template.builtIn)
+    .map((template) => migrateElile ? {
+      ...template,
+      employees: hydrateEmployeeTimes(migrateElileEmployees(template.employees), migrateElileTemplate(template.employees, template.weeklyTemplate)),
+      weeklyTemplate: migrateElileTemplate(template.employees, template.weeklyTemplate),
+      monthOverrides: migrateElileDays(template.employees, template.monthOverrides),
+      monthDayOverrides: migrateElileDays(template.employees, template.monthDayOverrides),
+    } : template)]
 
   const today = new Date()
   const storedTemplate = cleanTemplate(value.weeklyTemplate)
@@ -90,32 +119,35 @@ function cleanState(value: unknown): SchedulerState {
     ? storedEmployees.filter((employee) => !legacySampleExtras.has(employee.id)
       || employee.defaultTime || getEmployeeDefaultTime(employee.id, storedTemplate))
     : storedEmployees
-  const blankWorkspace = value.version !== 2 && storedEmployees.length === 0
+  const blankWorkspace = legacyV1 && storedEmployees.length === 0
     && Object.values(storedTemplate).every((day) => day.entries.length === 0)
   const useBuiltInSample = oldBuiltInSample || blankWorkspace
   const restoreBuiltInPattern = useBuiltInSample
     && Object.values(storedTemplate).every((day) => day.entries.length === 0)
-  const restoreEmployeePattern = value.version !== 2 && !restoreBuiltInPattern
+  const restoreEmployeePattern = legacyV1 && !restoreBuiltInPattern
     && Object.values(storedTemplate).every((day) => day.entries.length === 0)
     && workspaceEmployees.some((employee) => employee.defaultTime)
-  const workspaceTemplate = restoreBuiltInPattern
+  const startingTemplate = restoreBuiltInPattern
     ? cloneWeeklyTemplate(sampleTemplate.weeklyTemplate)
     : restoreEmployeePattern ? createSimpleWeeklyTemplate(workspaceEmployees, storedTemplate) : storedTemplate
+  const workspaceTemplate = migrateElile ? migrateElileTemplate(workspaceEmployees, startingTemplate) : startingTemplate
   const employees = hydrateEmployeeTimes(
-    blankWorkspace ? sampleTemplate.employees.map((employee) => ({ ...employee })) : workspaceEmployees,
+    migrateElile
+      ? migrateElileEmployees(blankWorkspace ? sampleTemplate.employees.map((employee) => ({ ...employee })) : workspaceEmployees)
+      : blankWorkspace ? sampleTemplate.employees.map((employee) => ({ ...employee })) : workspaceEmployees,
     workspaceTemplate,
   )
   const storedOverrides = cleanOverrides(value.dateOverrides ?? value.currentMonthOverrides)
-  const dateOverrides = useBuiltInSample && value.version !== 2
+  const dateOverrides = useBuiltInSample && legacyV1
     ? { ...cleanOverrides(sampleTemplate.monthOverrides), ...storedOverrides }
     : storedOverrides
-  if (value.version !== 2 && !dateOverrides['2026-10-30']) {
+  if (legacyV1 && !dateOverrides['2026-10-30']) {
     const october30 = createOctober30Override(employees, workspaceTemplate)
     if (october30) dateOverrides['2026-10-30'] = october30
   }
 
   return {
-    version: 2,
+    version: 3,
     scheduleTitle: typeof value.scheduleTitle === 'string' && value.scheduleTitle.trim().length > 0
       ? value.scheduleTitle.trim()
       : fallback.scheduleTitle,
@@ -129,7 +161,7 @@ function cleanState(value: unknown): SchedulerState {
         : null,
     selectedYear: today.getFullYear(),
     selectedMonth: today.getMonth(),
-    dateOverrides,
+    dateOverrides: migrateElile ? migrateElileDays(employees, dateOverrides) : dateOverrides,
   }
 }
 

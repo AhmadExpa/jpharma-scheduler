@@ -15,7 +15,7 @@ export const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ]
 
-export const SAMPLE_TEMPLATE_ID = 'builtin-pharmacists-schedule-v8'
+export const SAMPLE_TEMPLATE_ID = 'builtin-pharmacists-schedule-v9'
 
 type SampleRow = { employeeId: string; kind: EntryKind; label: string }
 
@@ -30,12 +30,16 @@ function sampleOff(employeeId: string, label: string): SampleRow {
   return { employeeId, kind: 'off', label }
 }
 
+function sampleUnknown(employeeId: string): SampleRow {
+  return { employeeId, kind: 'unknown', label: '?' }
+}
+
 function sampleCommonRows(): SampleRow[] {
   return [
     sampleShift('sample-bunmi', '9:00 AM'),
     sampleShift('sample-chinenye', '9:00 AM'),
     sampleShift('sample-esther', '7:30 AM'),
-    sampleShift('sample-elile', '9:00 AM'),
+    sampleUnknown('sample-elile'),
     sampleShift('sample-gerren', '10:00 AM'),
     sampleShift('sample-jonathan', '7:30 AM'),
     sampleShift('sample-obi', '9:00 AM'),
@@ -110,14 +114,15 @@ export function hydrateEmployeeTimes(employees: Employee[], template: WeeklyTemp
 
 export function createSimpleWeeklyTemplate(employees: Employee[], existingTemplate?: WeeklyTemplate): WeeklyTemplate {
   const nextTemplate = existingTemplate ? cloneWeeklyTemplate(existingTemplate) : createDefaultTemplate()
-  const entries = employees
-    .filter((employee) => normalizeTimeValue(employee.defaultTime))
-    .map((employee) => ({
+  const entries = employees.map((employee) => {
+    const time = formatTimeLabel(employee.defaultTime ?? '')
+    return {
       id: createId('entry'),
       employeeId: employee.id,
-      kind: 'shift' as const,
-      label: formatTimeLabel(employee.defaultTime ?? ''),
-    }))
+      kind: time ? 'shift' as const : 'unknown' as const,
+      label: time || '?',
+    }
+  })
 
   for (const day of [1, 2, 3, 4, 5] as Weekday[]) {
     nextTemplate[day] = {
@@ -159,6 +164,19 @@ export function createSampleTemplate(): ScheduleTemplate {
       '2026-10-30': createOctober30Override(employees, weeklyTemplate)!,
     },
     monthDayOverrides: {},
+  }
+}
+
+/** A one-time migration for Elile's previously assumed 9:00 AM arrival. */
+export function replaceElileNineWithUnknown(employees: Employee[], day: DaySchedule): DaySchedule {
+  const elileIds = new Set(employees.filter((employee) => employee.name.trim().toLowerCase() === 'elile').map((employee) => employee.id))
+  if (elileIds.size === 0) return day
+  return {
+    ...day,
+    entries: day.entries.map((entry) => elileIds.has(entry.employeeId)
+      && entry.kind === 'shift' && normalizeTimeValue(entry.label) === '09:00'
+      ? { ...entry, kind: 'unknown' as const, label: '?' }
+      : entry),
   }
 }
 
@@ -212,7 +230,7 @@ export function createDefaultState(): SchedulerState {
   const sample = createSampleTemplate()
   const today = new Date()
   return {
-    version: 2,
+    version: 3,
     scheduleTitle: 'Staff Schedule',
     employees: sample.employees.map((employee) => ({ ...employee })),
     weeklyTemplate: cloneWeeklyTemplate(sample.weeklyTemplate),
@@ -234,6 +252,33 @@ export function cloneWeeklyTemplate(template: WeeklyTemplate): WeeklyTemplate {
     }
   }
   return copy
+}
+
+/** Repeat selected employee statuses on every Monday–Friday without changing other team members. */
+export function repeatEntriesMondayFriday(template: WeeklyTemplate, entries: ScheduleEntry[]): WeeklyTemplate {
+  const next = cloneWeeklyTemplate(template)
+  const replacements = new Map(entries.map((entry) => [entry.employeeId, entry]))
+  for (const weekday of [1, 2, 3, 4, 5] as Weekday[]) {
+    const seen = new Set<string>()
+    const dayEntries: ScheduleEntry[] = []
+    for (const existing of next[weekday].entries) {
+      const replacement = replacements.get(existing.employeeId)
+      if (!replacement) {
+        dayEntries.push(existing)
+      } else if (!seen.has(existing.employeeId)) {
+        dayEntries.push({ ...replacement, id: existing.id })
+        seen.add(existing.employeeId)
+      }
+    }
+    for (const replacement of entries) {
+      if (!seen.has(replacement.employeeId)) {
+        dayEntries.push({ ...replacement, id: createId('entry') })
+        seen.add(replacement.employeeId)
+      }
+    }
+    next[weekday] = { ...next[weekday], entries: dayEntries }
+  }
+  return next
 }
 
 export function cloneMonthOverrides(overrides: Record<string, DaySchedule>): Record<string, DaySchedule> {

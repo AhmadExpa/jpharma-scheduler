@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { formatTimeLabel, WEEKDAYS } from '../dateUtils'
-import type { DaySchedule, Employee, ScheduleEntry, Weekday } from '../types'
+import { createId, formatTimeLabel, normalizeTimeValue, WEEKDAYS } from '../dateUtils'
+import type { DaySchedule, Employee, EntryKind, ScheduleEntry, Weekday } from '../types'
 import Icon from './Icon'
 import TimePicker from './TimePicker'
 
@@ -9,6 +9,14 @@ interface QuickSetupModalProps {
   template: Record<Weekday, DaySchedule>
   onClose: () => void
   onSave: (updates: Partial<Record<Weekday, DaySchedule>>) => void
+}
+
+function getExistingEntry(employeeId: string, template: Record<Weekday, DaySchedule>): ScheduleEntry | undefined {
+  for (const day of [1, 2, 3, 4, 5, 0, 6] as Weekday[]) {
+    const entry = template[day].entries.find((item) => item.employeeId === employeeId)
+    if (entry) return entry
+  }
+  return undefined
 }
 
 function getExistingTime(employeeId: string, template: Record<Weekday, DaySchedule>): string {
@@ -25,10 +33,14 @@ export default function QuickSetupModal({ employees, template, onClose, onSave }
     return configuredDays.length > 0 ? configuredDays : [1, 2, 3, 4, 5]
   })
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>(() => {
-    const scheduled = employees.filter((employee) => getExistingTime(employee.id, template) || employee.defaultTime)
+    const scheduled = employees.filter((employee) => getExistingEntry(employee.id, template) || employee.defaultTime)
     return (scheduled.length > 0 ? scheduled : employees).map((employee) => employee.id)
   })
   const [employeeToAdd, setEmployeeToAdd] = useState('')
+  const [kinds, setKinds] = useState<Record<string, EntryKind>>(() => Object.fromEntries(employees.map((employee) => [
+    employee.id,
+    getExistingEntry(employee.id, template)?.kind ?? (employee.defaultTime ? 'shift' : 'unknown'),
+  ])))
   const [times, setTimes] = useState<Record<string, string>>(() => Object.fromEntries(employees.map((employee) => [
     employee.id,
     formatTimeLabel(employee.defaultTime ?? '') || getExistingTime(employee.id, template),
@@ -72,19 +84,22 @@ export default function QuickSetupModal({ employees, template, onClose, onSave }
       setError('Select at least one team member.')
       return
     }
-    if (selectedEmployees.some((employee) => !times[employee.id])) {
-      setError('Choose a time for every selected team member before creating the pattern.')
+    if (selectedEmployees.some((employee) => kinds[employee.id] === 'shift' && !normalizeTimeValue(times[employee.id]))) {
+      setError('Choose a time, OFF, or ? for each selected employee.')
       return
     }
 
     const updates: Partial<Record<Weekday, DaySchedule>> = {}
     for (const day of selectedDays) {
-      const entries: ScheduleEntry[] = selectedEmployees.map((employee) => ({
-        id: `${employee.id}-${day}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        employeeId: employee.id,
-        kind: 'shift',
-        label: times[employee.id],
-      }))
+      const entries: ScheduleEntry[] = selectedEmployees.map((employee) => {
+        const kind = kinds[employee.id] ?? 'unknown'
+        return {
+          id: createId('entry'),
+          employeeId: employee.id,
+          kind,
+          label: kind === 'off' ? 'OFF' : kind === 'unknown' ? '?' : formatTimeLabel(times[employee.id]),
+        }
+      })
       updates[day] = { entries, note: template[day].note }
     }
     onSave(updates)
@@ -104,7 +119,7 @@ export default function QuickSetupModal({ employees, template, onClose, onSave }
         <div className="modal-body">
           <div className="modal-callout">
             <Icon name="refresh" size={17} />
-            <span>Set each person once. The pattern will appear automatically in every month you select.</span>
+            <span>Set each person's Time, OFF, or ? once. The choices repeat on the selected weekdays in every month.</span>
           </div>
 
           <div className="quick-setup-section">
@@ -123,7 +138,7 @@ export default function QuickSetupModal({ employees, template, onClose, onSave }
 
           <div className="quick-setup-section">
             <div className="quick-section-heading">
-              <div><h3>Team times</h3><p>Select the employees for this team and set their time. These times repeat on each selected weekday.</p></div>
+              <div><h3>Team status</h3><p>Choose Time, OFF, or ? for each person. These repeat on the selected weekdays.</p></div>
               <span>{selectedEmployees.length} selected</span>
             </div>
             <div className="quick-team-list">
@@ -131,7 +146,16 @@ export default function QuickSetupModal({ employees, template, onClose, onSave }
                 <div className="quick-team-row" key={employee.id}>
                   <strong>{employee.name}</strong>
                   <div className="quick-team-row-actions">
-                    <TimePicker value={times[employee.id] ?? ''} onChange={(label) => setTimes((current) => ({ ...current, [employee.id]: label }))} />
+                    <select className="quick-kind-select" value={kinds[employee.id] ?? 'unknown'} onChange={(event) => { setKinds((current) => ({ ...current, [employee.id]: event.target.value as EntryKind })); setError('') }} aria-label={`Repeat status for ${employee.name}`}>
+                      <option value="shift">Time</option>
+                      <option value="off">OFF</option>
+                      <option value="unknown">?</option>
+                    </select>
+                    {kinds[employee.id] === 'shift' ? (
+                      <TimePicker value={times[employee.id] ?? ''} onChange={(label) => { setTimes((current) => ({ ...current, [employee.id]: label })); setError('') }} />
+                    ) : (
+                      <span className={`day-kind-value ${kinds[employee.id]}`}>{kinds[employee.id] === 'off' ? 'Off' : 'Time to confirm'}</span>
+                    )}
                     <button className="small-action danger" type="button" onClick={() => removeTeamMember(employee.id)} aria-label={`Remove ${employee.name} from this team`} title="Remove from team"><Icon name="x" size={15} /></button>
                   </div>
                 </div>
@@ -151,7 +175,7 @@ export default function QuickSetupModal({ employees, template, onClose, onSave }
         </div>
 
         <div className="modal-footer">
-          <span className="quick-footer-note">One-day exceptions can be edited on the calendar.</span>
+          <span className="quick-footer-note">Selected weekdays update. One-day changes on the calendar stay separate.</span>
           <div className="footer-actions">
             <button className="button secondary" type="button" onClick={onClose}>Cancel</button>
             <button className="button primary" type="button" onClick={save}><Icon name="check" size={16} /> Create pattern</button>

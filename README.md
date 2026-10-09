@@ -2,7 +2,7 @@
 
 A browser-based monthly staff scheduling portal for creating recurring weekly coverage patterns and printing a clean monthly calendar.
 
-The JPharma Pharmacists Schedule is loaded by default. It repeats Monday–Friday, and the calendar opens on the current month. The October 2026 schedule carries those weekly times forward with Jonathan marked OFF and Elile's unconfirmed time shown as ? on October 30.
+The JPharma Pharmacists Schedule is loaded by default. It repeats Monday–Friday, and the calendar opens on the current month. Elile stays on the schedule with ? instead of an assumed 9:00 AM time. On October 30, 2026, Jonathan is marked OFF.
 
 ## Run locally
 
@@ -16,9 +16,9 @@ Open the local URL shown by Vite.
 ## Workflow
 
 1. Add your employees in the **Add your employees** card.
-2. Choose one start time for each employee.
+2. Choose a start time for each employee, or leave it blank to show ? until their time is confirmed.
 3. Click **Add schedule to calendar**. The schedule repeats automatically Monday–Friday in the current month and future months.
-4. Click any calendar day to set a time, mark someone OFF, mark their time as ? when it is not confirmed, or add an employee for that day.
+4. Click any calendar day to set a time, mark someone OFF, mark their time as ? when it is not confirmed, or add an employee for that day. Use **Repeat Mon–Fri** on a person's row to repeat that Time, OFF, or ? status every weekday in every month. One-day exceptions stay separate.
 5. Use **Print / Save PDF** to print the schedule or save it as a PDF from the browser dialog.
 
 Saved schedules, example data, custom weekday rules, printed titles, notes, and reset controls are available under **More options** for users who need them.

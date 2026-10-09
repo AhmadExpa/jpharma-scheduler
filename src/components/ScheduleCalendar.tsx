@@ -30,7 +30,7 @@ export default function ScheduleCalendar({ year, month, scheduleTitle, employees
         <div>
           <p className="eyebrow">Your calendar</p>
           <h2 id="calendar-title">{formatMonthYear(year, month)}</h2>
-          <InfoTag>Repeats Monday–Friday · click a day to change it</InfoTag>
+          <InfoTag>Repeats Monday–Friday · ? means time not confirmed · click a day to change it</InfoTag>
         </div>
         <div className="calendar-status">
           <span className="status-dot" />
